@@ -22,8 +22,12 @@ def kaggle_manual_download():
       "fileName": None,
       "datasetVersionNumber": 2,
       "raw": False,
-      "hashLink": None
+      "hashLink": None,
     },
+    headers = {
+      "User-Agent": "kaggle-api/v1.7.0",
+      "Content-Type": "application/json",
+    }
   )
   print(response.status_code)
   return
