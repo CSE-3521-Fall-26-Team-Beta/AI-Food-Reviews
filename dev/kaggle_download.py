@@ -70,12 +70,14 @@ def kaggle_manual_download_reviews():
     extract_reviews_from_archive()
   except FileNotFoundError:
     print(f'{ARCHIVE_ZIP_NAME} not found, downloading...')
+    
     kaggle_manual_download_archive()
     extract_reviews_from_archive()
 
 def ensure_results_csv_exists():
   if not exists(REVIEWS_CSV_PATH):
     print(f'{REVIEWS_CSV_NAME} not found, downloading...')
+    
     #kaggle_automatic_download_reviews()
     kaggle_manual_download_reviews()
 
