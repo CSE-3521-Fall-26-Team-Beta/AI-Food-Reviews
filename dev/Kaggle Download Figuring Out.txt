@@ -1,0 +1,38 @@
+C:\Users\<username>\AppData\Roaming\Python\Python314\site-packages\kagglehub\http_resolver.py:
+  Class DatasetHttpResolver:
+    def _resolve:
+      ...
+      line 150 in kagglehub 1.0.3
+      response = handle_call(lambda: api_client.datasets.dataset_api_client.download_dataset(r), h)
+
+C:\Users\<username>\AppData\Roaming\Python\Python314\site-packages\kagglesdk\kaggle_client.py:
+  class KaggleClient:
+    def __init__:
+      ...
+
+C:\Users\<username>\AppData\Roaming\Python\Python314\site-packages\kagglesdk\datasets\services\dataset_api_service.py:
+  class DatasetApiClient:
+    def download_dataset:
+      downloads the dataset:
+        http_client.call("datasets.DatasetApiService", "DownloadDataset", request, HttpRedirect)
+        
+        what is http client?:
+
+C:\Users\<username>\AppData\Roaming\Python\Python314\site-packages\kagglesdk\kaggle_http_client.py:
+  class KaggleHttpClient:
+    vars:
+      self._user_agent = "kaggle-api/v1.7.0"
+    additional headers:
+      {"User-Agent": self._user_agent, "Content-Type": "application/json"}
+    
+    def call:
+      self._session is requests.Session()
+      self._prepare_request(service_name, request_name, request)
+        self._prepare_request("datasets.DatasetApiService", "DownloadDataset", request)
+    
+    def _prepare_request:
+      self._get_request_url(service_name, request_name)
+        request_url = self._get_request_url("datasets.DatasetApiService", "DownloadDataset")
+          https://api.kaggle.com/v1/datasets.DatasetApiService/DownloadDataset
+        
+        prepares a POST request, to request_url, with body JSON of the variable request ({"ownerSlug": "snap", "datasetSlug": "amazon-fine-food-reviews", "fileName": null, "datasetVersionNumber": 2, "raw": false, "hashLink": null})
