@@ -76,5 +76,3 @@ def ensure_results_csv_exists():
     
     #_kaggle_automatic_download_reviews()
     _kaggle_manual_download_reviews()
-
-ensure_results_csv_exists()
