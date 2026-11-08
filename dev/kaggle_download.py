@@ -3,17 +3,13 @@
 # Can be found here: https://docs.python.org/3/reference/datamodel.html#module.__file__
 
 from os.path import dirname
-from os import mkdir
+from os import makedirs
 
 script_dir = dirname(__file__)
 output_dir = f'{script_dir}/../data-bin'
 
 def ensure_data_bin_exists():
-  try:
-    mkdir(output_dir)
-  except FileExistsError:
-    # Do nothing
-    pass
+  makedirs(output_dir, exist_ok = True)
 
 def kaggle_default_download():
   import kagglehub
@@ -21,10 +17,14 @@ def kaggle_default_download():
   
   download_path = kagglehub.dataset_download('snap/amazon-fine-food-reviews')
   
-  copyfile(f'{download_path}/Reviews.csv', f'{script_dir}/../data-bin/Reviews.csv')
+  ensure_data_bin_exists()
+  
+  copyfile(f'{download_path}/Reviews.csv', f'{output_dir}/Reviews.csv')
 
 def kaggle_manual_download():
   import requests
+  
+  ensure_data_bin_exists()
   
   response = requests.post(
     'https://api.kaggle.com/v1/datasets.DatasetApiService/DownloadDataset',
@@ -46,8 +46,10 @@ def kaggle_manual_download():
   if response.status_code != 200:
     raise Exception(f'Download failed with status code: {response.status_code}')
   
-  with open(f'{script_dir}/../data-bin/archive.zip', 'wb') as f:
+  with open(f'{output_dir}/archive.zip', 'wb') as f:
     f.write(response.content)
+  
+  
 
 #kaggle_default_download()
 kaggle_manual_download()
