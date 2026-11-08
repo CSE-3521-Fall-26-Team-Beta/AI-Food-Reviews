@@ -7,20 +7,20 @@ from os.path import dirname, exists
 from zipfile import ZipFile
 
 _script_dir = dirname(__file__)
-_download_dir = f'{_script_dir}/../data-bin'
+DATA_BIN_DIR = f'{_script_dir}/../data-bin'
 ARCHIVE_ZIP_NAME = 'archive.zip'
 REVIEWS_CSV_NAME = 'Reviews.csv'
-REVIEWS_CSV_PATH = f'{_download_dir}/{ARCHIVE_ZIP_NAME}'
+REVIEWS_CSV_PATH = f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}'
 
 def ensure_data_bin_exists():
-  makedirs(_download_dir, exist_ok = True)
+  makedirs(DATA_BIN_DIR, exist_ok = True)
 
 def extract_reviews_from_archive():
   print(f'Extracting {REVIEWS_CSV_NAME} from downloaded {ARCHIVE_ZIP_NAME}...')
   
-  with ZipFile(f'{_download_dir}/{ARCHIVE_ZIP_NAME}') as zip_archive:
+  with ZipFile(f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}') as zip_archive:
     with zip_archive.open(REVIEWS_CSV_NAME, 'r') as input_f:
-      with open(f'{_download_dir}/{REVIEWS_CSV_NAME}', 'wb') as output_f:
+      with open(f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}', 'wb') as output_f:
         output_f.write(input_f.read())
 
 def kaggle_automatic_download_reviews():
@@ -33,7 +33,7 @@ def kaggle_automatic_download_reviews():
   
   ensure_data_bin_exists()
   
-  copyfile(f'{download_path}/{REVIEWS_CSV_NAME}', f'{_download_dir}/{REVIEWS_CSV_NAME}')
+  copyfile(f'{download_path}/{REVIEWS_CSV_NAME}', f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}')
 
 def kaggle_manual_download_archive():
   print(f'Downloading {ARCHIVE_ZIP_NAME} using kagglehub raw API...')
@@ -62,7 +62,7 @@ def kaggle_manual_download_archive():
   if response.status_code != 200:
     raise Exception(f'Download failed with status code: {response.status_code}')
   
-  with open(f'{_download_dir}/{ARCHIVE_ZIP_NAME}', 'wb') as f:
+  with open(f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}', 'wb') as f:
     f.write(response.content)
 
 def kaggle_manual_download_reviews():
