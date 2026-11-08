@@ -71,8 +71,16 @@ def _kaggle_manual_download_reviews():
     _extract_reviews_from_archive()
 
 def ensure_results_csv_exists():
+  '''
+  Returns True if data needed to be downloaded by this function call,
+  and returns False if data already present.
+  '''
+  
   if not exists(REVIEWS_CSV_PATH):
     print(f'{REVIEWS_CSV_NAME} not found, downloading...')
     
     #_kaggle_automatic_download_reviews()
     _kaggle_manual_download_reviews()
+    return True
+  else:
+    return False
