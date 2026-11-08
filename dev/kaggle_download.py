@@ -3,7 +3,7 @@
 # Can be found here: https://docs.python.org/3/reference/datamodel.html#module.__file__
 
 from os import makedirs
-from os.path import dirname, exists
+from os.path import dirname
 from zipfile import ZipFile
 
 _script_dir = dirname(__file__)
