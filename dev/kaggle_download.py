@@ -4,6 +4,7 @@
 
 from os.path import dirname
 from os import makedirs
+from zipfile import ZipFile
 
 script_dir = dirname(__file__)
 output_dir = f'{script_dir}/../data-bin'
@@ -11,7 +12,13 @@ output_dir = f'{script_dir}/../data-bin'
 def ensure_data_bin_exists():
   makedirs(output_dir, exist_ok = True)
 
-def kaggle_default_download():
+def copy_output_to_reviews():
+  with ZipFile(f'{output_dir}/archive.zip') as zip_archive:
+    with zip_archive.open('Reviews.csv', 'rb') as input_f:
+      with open(f'{output_dir}/Reviews.csv', 'wb') as output_f:
+        output_f.write(input_f.read())
+
+def kaggle_automatic_download_reviews():
   import kagglehub
   from shutil import copyfile
   
@@ -21,7 +28,7 @@ def kaggle_default_download():
   
   copyfile(f'{download_path}/Reviews.csv', f'{output_dir}/Reviews.csv')
 
-def kaggle_manual_download():
+def kaggle_manual_download_archive():
   import requests
   
   ensure_data_bin_exists()
@@ -48,8 +55,10 @@ def kaggle_manual_download():
   
   with open(f'{output_dir}/archive.zip', 'wb') as f:
     f.write(response.content)
-  
-  
+
+def kaggle_manual_download_reviews():
+  try:
+    
 
 #kaggle_default_download()
 kaggle_manual_download()
