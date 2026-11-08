@@ -12,7 +12,7 @@ output_dir = f'{script_dir}/../data-bin'
 def ensure_data_bin_exists():
   makedirs(output_dir, exist_ok = True)
 
-def copy_output_to_reviews():
+def copy_archive_to_reviews():
   with ZipFile(f'{output_dir}/archive.zip') as zip_archive:
     with zip_archive.open('Reviews.csv', 'rb') as input_f:
       with open(f'{output_dir}/Reviews.csv', 'wb') as output_f:
@@ -58,7 +58,10 @@ def kaggle_manual_download_archive():
 
 def kaggle_manual_download_reviews():
   try:
-    
+    copy_archive_to_reviews()
+  except FileNotFoundError:
+    kaggle_manual_download_archive()
+    copy_archive_to_reviews()
 
-#kaggle_default_download()
-kaggle_manual_download()
+#kaggle_automatic_download_reviews()
+kaggle_manual_download_reviews()
