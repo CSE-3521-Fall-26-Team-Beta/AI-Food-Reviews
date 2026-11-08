@@ -34,8 +34,8 @@ def kaggle_manual_download():
   if response.status_code != 200:
     raise Exception(f'Download failed with status code: {response.status_code}')
 
-  with open('output.txt', 'w') as f:
-    f.write(response.text)
+  with open('output.txt', 'wb') as f:
+    f.write(response.content)
 
 #kaggle_default_download()
 kaggle_manual_download()
