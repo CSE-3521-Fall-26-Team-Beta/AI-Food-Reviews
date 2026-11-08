@@ -21,7 +21,7 @@ def _extract_reviews_from_archive():
       with open(f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}', 'wb') as output_f:
         output_f.write(input_f.read())
 
-def _kaggle_automatic_download_reviews():
+def _kaggle_python_package_download_reviews():
   print(f'Downloading {REVIEWS_CSV_NAME} using kagglehub Python package...')
   
   from shutil import copyfile
@@ -34,7 +34,7 @@ def _kaggle_automatic_download_reviews():
   
   copyfile(f'{download_path}/{REVIEWS_CSV_NAME}', f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}')
 
-def _kaggle_manual_download_archive():
+def _kaggle_raw_api_download_archive():
   print(f'Downloading {ARCHIVE_ZIP_NAME} using kagglehub raw API...')
   
   import requests
@@ -64,14 +64,14 @@ def _kaggle_manual_download_archive():
   with open(f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}', 'wb') as f:
     f.write(response.content)
 
-def _kaggle_manual_download_reviews():
+def _kaggle_raw_api_download_reviews():
   try:
     _extract_reviews_from_archive()
   except FileNotFoundError:
     print(f'{ARCHIVE_ZIP_NAME} not found, downloading...')
     
     try:
-      _kaggle_manual_download_archive()
+      _kaggle_raw_api_download_archive()
     except Exception as exc:
       error_file = StringIO()
       
@@ -83,7 +83,7 @@ def _kaggle_manual_download_reviews():
       print()
       
       print(f'Attempting kagglehub Python package download of {REVIEWS_CSV_NAME} instead...')
-      _kaggle_automatic_download_reviews()
+      _kaggle_python_package_download_reviews()
       return
     
     _extract_reviews_from_archive()
@@ -97,8 +97,8 @@ def ensure_results_csv_exists():
   if not exists(REVIEWS_CSV_PATH):
     print(f'{REVIEWS_CSV_NAME} not found, downloading...')
     
-    #_kaggle_automatic_download_reviews()
-    _kaggle_manual_download_reviews()
+    #_kaggle_python_package_download_reviews()
+    _kaggle_raw_api_download_reviews()
     return True
   else:
     return False
