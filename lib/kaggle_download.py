@@ -3,14 +3,10 @@
 # Can be found here: https://docs.python.org/3/reference/datamodel.html#module.__file__
 
 from os import makedirs
-from os.path import dirname, exists
+from os.path import exists
 from zipfile import ZipFile
 
-_script_dir = dirname(__file__)
-DATA_BIN_DIR = f'{_script_dir}/../data-bin'
-ARCHIVE_ZIP_NAME = 'archive.zip'
-REVIEWS_CSV_NAME = 'Reviews.csv'
-REVIEWS_CSV_PATH = f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}'
+from constants import ARCHIVE_ZIP_NAME, DATA_BIN_DIR, REVIEWS_CSV_NAME, REVIEWS_CSV_PATH
 
 def ensure_data_bin_exists():
   makedirs(DATA_BIN_DIR, exist_ok = True)
