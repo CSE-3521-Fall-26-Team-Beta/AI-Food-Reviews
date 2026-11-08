@@ -25,13 +25,17 @@ def kaggle_manual_download():
       "hashLink": None,
     },
     headers = {
+      # User agent header is required, otherwise api will return a 404
       "User-Agent": "kaggle-api/v1.7.0",
       "Content-Type": "application/json",
     }
   )
-  print(response.status_code)
-  return
-  print(response.text[0:40])
+
+  if response.status_code != 200:
+    raise Exception(f'Download failed with status code: {response.status_code}')
+
+  with open('output.txt', 'w') as f:
+    f.write(response.text)
 
 #kaggle_default_download()
 kaggle_manual_download()
