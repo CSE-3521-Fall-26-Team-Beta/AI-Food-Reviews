@@ -1,1 +1,5 @@
+# Relative path matches
+__pycache__
+
+# Absolute paths
 /data-bin/

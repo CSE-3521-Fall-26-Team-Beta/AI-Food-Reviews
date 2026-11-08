@@ -6,7 +6,7 @@ from os import makedirs
 from os.path import exists
 from zipfile import ZipFile
 
-from constants import ARCHIVE_ZIP_NAME, DATA_BIN_DIR, REVIEWS_CSV_NAME, REVIEWS_CSV_PATH
+from .constants import ARCHIVE_ZIP_NAME, DATA_BIN_DIR, REVIEWS_CSV_NAME, REVIEWS_CSV_PATH
 
 def _ensure_data_bin_exists():
   makedirs(DATA_BIN_DIR, exist_ok = True)
