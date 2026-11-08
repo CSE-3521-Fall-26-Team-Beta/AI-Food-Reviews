@@ -1,0 +1,4 @@
+requests == 2.34.2
+
+# Only needed if raw API download doesnt work
+kagglehub == 1.0.3

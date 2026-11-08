@@ -2,8 +2,10 @@
 # Answer: __file__ gives the path to the script file
 # Can be found here: https://docs.python.org/3/reference/datamodel.html#module.__file__
 
+from io import StringIO
 from os import makedirs
 from os.path import exists
+from traceback import print_exception
 from zipfile import ZipFile
 
 from .constants import ARCHIVE_ZIP_NAME, DATA_BIN_DIR, REVIEWS_CSV_NAME, REVIEWS_CSV_PATH
@@ -22,8 +24,9 @@ def _extract_reviews_from_archive():
 def _kaggle_automatic_download_reviews():
   print(f'Downloading {REVIEWS_CSV_NAME} using kagglehub Python package...')
   
-  import kagglehub
   from shutil import copyfile
+  
+  import kagglehub
   
   download_path = kagglehub.dataset_download('snap/amazon-fine-food-reviews')
   
@@ -67,7 +70,22 @@ def _kaggle_manual_download_reviews():
   except FileNotFoundError:
     print(f'{ARCHIVE_ZIP_NAME} not found, downloading...')
     
-    _kaggle_manual_download_archive()
+    try:
+      _kaggle_manual_download_archive()
+    except Exception as exc:
+      error_file = StringIO()
+      
+      print_exception(exc, file = error_file)
+      
+      print(f'Downloading {ARCHIVE_ZIP_NAME} using kagglehub raw API failed with exception:')
+      
+      print(error_file.getvalue())
+      print()
+      
+      print(f'Attempting kagglehub Python package download of {REVIEWS_CSV_NAME} instead...')
+      _kaggle_automatic_download_reviews()
+      return
+    
     _extract_reviews_from_archive()
 
 def ensure_results_csv_exists():
