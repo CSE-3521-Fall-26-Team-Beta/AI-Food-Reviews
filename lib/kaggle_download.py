@@ -8,10 +8,10 @@ from zipfile import ZipFile
 
 from constants import ARCHIVE_ZIP_NAME, DATA_BIN_DIR, REVIEWS_CSV_NAME, REVIEWS_CSV_PATH
 
-def ensure_data_bin_exists():
+def _ensure_data_bin_exists():
   makedirs(DATA_BIN_DIR, exist_ok = True)
 
-def extract_reviews_from_archive():
+def _extract_reviews_from_archive():
   print(f'Extracting {REVIEWS_CSV_NAME} from downloaded {ARCHIVE_ZIP_NAME}...')
   
   with ZipFile(f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}') as zip_archive:
@@ -19,7 +19,7 @@ def extract_reviews_from_archive():
       with open(f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}', 'wb') as output_f:
         output_f.write(input_f.read())
 
-def kaggle_automatic_download_reviews():
+def _kaggle_automatic_download_reviews():
   print(f'Downloading {REVIEWS_CSV_NAME} using kagglehub Python package...')
   
   import kagglehub
@@ -27,16 +27,16 @@ def kaggle_automatic_download_reviews():
   
   download_path = kagglehub.dataset_download('snap/amazon-fine-food-reviews')
   
-  ensure_data_bin_exists()
+  _ensure_data_bin_exists()
   
   copyfile(f'{download_path}/{REVIEWS_CSV_NAME}', f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}')
 
-def kaggle_manual_download_archive():
+def _kaggle_manual_download_archive():
   print(f'Downloading {ARCHIVE_ZIP_NAME} using kagglehub raw API...')
   
   import requests
   
-  ensure_data_bin_exists()
+  _ensure_data_bin_exists()
   
   response = requests.post(
     'https://api.kaggle.com/v1/datasets.DatasetApiService/DownloadDataset',
@@ -61,20 +61,20 @@ def kaggle_manual_download_archive():
   with open(f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}', 'wb') as f:
     f.write(response.content)
 
-def kaggle_manual_download_reviews():
+def _kaggle_manual_download_reviews():
   try:
-    extract_reviews_from_archive()
+    _extract_reviews_from_archive()
   except FileNotFoundError:
     print(f'{ARCHIVE_ZIP_NAME} not found, downloading...')
     
-    kaggle_manual_download_archive()
-    extract_reviews_from_archive()
+    _kaggle_manual_download_archive()
+    _extract_reviews_from_archive()
 
 def ensure_results_csv_exists():
   if not exists(REVIEWS_CSV_PATH):
     print(f'{REVIEWS_CSV_NAME} not found, downloading...')
     
-    #kaggle_automatic_download_reviews()
-    kaggle_manual_download_reviews()
+    #_kaggle_automatic_download_reviews()
+    _kaggle_manual_download_reviews()
 
 ensure_results_csv_exists()
