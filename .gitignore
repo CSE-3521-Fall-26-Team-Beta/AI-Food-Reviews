@@ -1,4 +1,5 @@
 # Relative path matches
+.ipynb_checkpoints
 __pycache__
 
 # Absolute paths
