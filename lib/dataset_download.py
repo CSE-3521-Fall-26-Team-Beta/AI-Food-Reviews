@@ -18,7 +18,7 @@ def _extract_reviews_from_archive():
   
   with ZipFile(f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}') as zip_archive:
     with zip_archive.open(REVIEWS_CSV_NAME, 'r') as input_f:
-      with open(f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}', 'wb') as output_f:
+      with open(REVIEWS_CSV_PATH, 'wb') as output_f:
         output_f.write(input_f.read())
 
 def _kaggle_python_package_download_reviews():
@@ -32,7 +32,7 @@ def _kaggle_python_package_download_reviews():
   
   _ensure_data_bin_exists()
   
-  copyfile(f'{download_path}/{REVIEWS_CSV_NAME}', f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}')
+  copyfile(f'{download_path}/{REVIEWS_CSV_NAME}', REVIEWS_CSV_PATH)
 
 def _kaggle_raw_api_download_archive():
   print(f'Downloading {ARCHIVE_ZIP_NAME} using kagglehub raw API...')
