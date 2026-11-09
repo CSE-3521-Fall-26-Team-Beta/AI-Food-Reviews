@@ -11,4 +11,5 @@ sample = df.sample(n = TRAINING_SAMPLE_SIZE, random_state = TRAINING_SEED)
 
 sample.to_csv(SAMPLE_CSV_PATH)
 
-print(f'')
+print(f'Saved {len(sample)} rows to {SAMPLE_CSV_PATH}')
+print(sample[['Score', 'Text']].head(3))
