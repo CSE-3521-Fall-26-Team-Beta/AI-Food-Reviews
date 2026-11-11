@@ -4,7 +4,7 @@ This is the GitHub repository for the AI food review project for CSE 3521.
 
 # Team Members
 
-Ethan Boes, Max Wuchter, Haodong Qiu, Santosh Schaefer, Sulman Abdullahi
+[Ethan Boes](https://github.com/CaptainDeuce), [Max Wuchter](https://github.com/MWuchter), [Haodong Qiu](https://github.com/meteorfallground-ops), [Santosh Schaefer](https://github.com/santosh-sch), [Sulman Abdullahi](https://github.com/Sulmanabdullahi)
 
 # Project Description
 
