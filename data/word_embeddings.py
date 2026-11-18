@@ -13,6 +13,8 @@ from sklearn.metrics import (
     recall_score,
     f1_score,
     ConfusionMatrixDisplay,
+    classification_report,
+    confusion_matrix,
 )
 
 
@@ -21,10 +23,13 @@ output = root / "results" / "word_embeddings"
 output.mkdir(parents=True, exist_ok=True)
 
 df = pd.read_csv(root / "data-bin" / "group_sample_seed43.csv")
-df = df[df["Score"].isin([1, 2, 4, 5])]
+df = df[df["Score"].isin([1, 2, 3, 4, 5])]
 df = df.dropna(subset=["Text"]).copy()
 
-df["label"] = (df["Score"] >= 4).astype(int)
+labels = ["Negative", "Neutral", "Positive"]
+df["label"] = df["Score"].map({
+    1: "Negative", 2: "Negative", 3: "Neutral", 4: "Positive", 5: "Positive"
+})
 
 df["Text"] = df["Text"].str.lower()
 df["Text"] = df["Text"].str.replace(r"<[^>]+>", " ", regex=True)
@@ -53,21 +58,32 @@ def review_vector(text):
     return np.mean(vectors, axis=0)
 
 
-train, test = train_test_split(
+train, remaining = train_test_split(
     df,
-    test_size=0.20,
+    test_size=0.30,
     random_state=43,
     stratify=df["label"],
 )
+validation, test = train_test_split(
+    remaining, test_size=2 / 3, random_state=43, stratify=remaining["label"]
+)
 
 X_train = np.array([review_vector(text) for text in train["Text"]])
+X_validation = np.array([review_vector(text) for text in validation["Text"]])
 X_test = np.array([review_vector(text) for text in test["Text"]])
 
 y_train = train["label"]
 y_test = test["label"]
 
-model = GaussianNB()
-model.fit(X_train, y_train)
+best_f1 = -1
+for smoothing in [1e-9, 1e-7, 1e-5]:
+    candidate = GaussianNB(var_smoothing=smoothing)
+    candidate.fit(X_train, y_train)
+    score = f1_score(validation["label"], candidate.predict(X_validation),
+                     average="macro", zero_division=0)
+    if score > best_f1:
+        best_f1 = score
+        model = candidate
 predictions = model.predict(X_test)
 
 majority_label = y_train.mode()[0]
@@ -81,29 +97,37 @@ def show_results(name, predicted):
     scores = {
         "Model": name,
         "Accuracy": accuracy_score(y_test, predicted),
-        "Precision": precision_score(y_test, predicted, zero_division=0),
-        "Recall": recall_score(y_test, predicted, zero_division=0),
-        "F1": f1_score(y_test, predicted, zero_division=0),
+        "Precision_macro": precision_score(y_test, predicted, labels=labels, average="macro", zero_division=0),
+        "Recall_macro": recall_score(y_test, predicted, labels=labels, average="macro", zero_division=0),
+        "F1_macro": f1_score(y_test, predicted, labels=labels, average="macro", zero_division=0),
     }
     results.append(scores)
     print("\n" + name)
-    for metric in ["Accuracy", "Precision", "Recall", "F1"]:
+    for metric in ["Accuracy", "Precision_macro", "Recall_macro", "F1_macro"]:
         print(metric + ":", round(scores[metric], 4))
 
 
 print("Training reviews:", len(train))
+print("Validation reviews:", len(validation))
 print("Test reviews:", len(test))
 print("Features per review:", X_train.shape[1])
+print("Selected model:", model)
 
 show_results("Majority baseline", baseline)
 show_results("Word embeddings + Gaussian Naive Bayes", predictions)
 pd.DataFrame(results).to_csv(output / "metrics.csv", index=False)
+pd.DataFrame(classification_report(
+    y_test, predictions, labels=labels, output_dict=True, zero_division=0
+)).T.to_csv(output / "classification_report.csv")
+pd.DataFrame(
+    confusion_matrix(y_test, predictions, labels=labels), index=labels, columns=labels
+).to_csv(output / "confusion_matrix.csv", index_label="Actual / Predicted")
 
 ConfusionMatrixDisplay.from_predictions(
     y_test,
     predictions,
-    labels=[0, 1],
-    display_labels=["Negative", "Positive"],
+    labels=labels,
+    display_labels=labels,
     cmap="Blues",
 )
 plt.tight_layout()
@@ -118,12 +142,18 @@ word_counts = Counter(
 print("Training vocabulary:", len(word_counts))
 print("Training words found in GloVe:", sum(word in embeddings for word in word_counts))
 
-contributions = Counter()
+contributions = {}
 review_counts = Counter()
-training_log_probabilities = model.predict_log_proba(X_train)
-training_log_odds = training_log_probabilities[:, 1] - training_log_probabilities[:, 0]
 
-for text, vector, original_score in zip(train["Text"], X_train, training_log_odds):
+
+def class_scores(vectors):
+    probabilities = model.predict_log_proba(vectors)
+    return probabilities - (probabilities.sum(axis=1, keepdims=True) - probabilities) / 2
+
+
+training_scores = class_scores(X_train)
+
+for text, vector, original_score in zip(train["Text"], X_train, training_scores):
     counts = Counter(
         word for word in re.findall(r"[a-z]+(?:'[a-z]+)?", text)
         if word in embeddings
@@ -136,33 +166,29 @@ for text, vector, original_score in zip(train["Text"], X_train, training_log_odd
         (vector * total - embeddings[word] * counts[word]) / (total - counts[word])
         for word in words
     ])
-    probabilities = model.predict_log_proba(without_words)
-    changes = original_score - (probabilities[:, 1] - probabilities[:, 0])
+    changes = original_score - class_scores(without_words)
     for word, change in zip(words, changes):
-        contributions[word] += float(change)
+        if word not in contributions:
+            contributions[word] = np.zeros(3)
+        contributions[word] += change
         review_counts[word] += 1
 
 word_scores = pd.DataFrame([
-    {"Word": word, "Contribution": contributions[word] / review_counts[word],
+    {"Word": word, "Sentiment": label, "Contribution": contributions[word][i] / review_counts[word],
      "Count": word_counts[word], "Reviews": review_counts[word]}
     for word in contributions if review_counts[word] >= 5
+    for i, label in enumerate(model.classes_)
 ])
-positive = word_scores[word_scores["Contribution"] > 0].nlargest(10, "Contribution")
-negative = word_scores[word_scores["Contribution"] < 0].nsmallest(10, "Contribution")
-positive.to_csv(output / "positive_words.csv", index=False)
-negative.to_csv(output / "negative_words.csv", index=False)
-print("\nPositive words:\n", positive.to_string(index=False))
-print("\nNegative words:\n", negative.to_string(index=False))
-
-fig, axes = plt.subplots(1, 2, figsize=(11, 5))
-for ax, words, title, color in [
-    (axes[0], negative, "Negative word contributions", "tomato"),
-    (axes[1], positive, "Positive word contributions", "seagreen"),
-]:
-    words = words.sort_values("Contribution")
+fig, axes = plt.subplots(1, 3, figsize=(16, 6))
+for ax, label, color in zip(axes, labels, ["tomato", "steelblue", "seagreen"]):
+    words = word_scores[(word_scores["Sentiment"] == label) & (word_scores["Contribution"] > 0)]
+    words = words.nlargest(10, "Contribution").sort_values("Contribution")
+    words.to_csv(output / f"{label.lower()}_words.csv", index=False)
+    print(f"\n{label} words:\n", words.to_string(index=False))
     ax.barh(words["Word"], words["Contribution"], color=color)
-    ax.set_title(title)
-    ax.set_xlabel("Mean log-odds change: original minus word removed")
+    ax.set_title(f"Words associated with {label.lower()}")
+    ax.set_xlabel("Mean change in relative class log score\n(original minus word removed)")
+fig.suptitle("GloVe + Gaussian NB: training-review word contributions")
 fig.tight_layout()
 fig.savefig(output / "word_contributions.png", dpi=200)
 plt.close(fig)
@@ -171,7 +197,7 @@ errors = test[["Text", "Score", "label"]].copy()
 errors["prediction"] = predictions
 errors = errors[errors["label"] != errors["prediction"]]
 examples = pd.concat([
-    group.sample(n=min(5, len(group)), random_state=43)
+    group.sample(n=min(3, len(group)), random_state=43)
     for _, group in errors.groupby("label")
 ])
 examples.to_csv(output / "misclassified_reviews.csv", index=False)

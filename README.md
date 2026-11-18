@@ -17,3 +17,17 @@ Our project will use the Amazon Fine Food Reviews dataset to build and evaluate 
 We will preprocess the review text and apply TF-IDF and word embeddings as our features engineering methods to convert textual information into numerical representations. Next, we will implement two classical machine learning models, Naive Bayes and Gaussian Mixture Model (GMM), and compare their performance with a pre-trained transformer model, DistilBERT. We will evaluate the models using accuracy, precision, recall and F1-score.
 
 Finally, we will develop and deploy a Streamlit web application that allows users to enter their own review text and view sentiment predictions from at least two trained models. Through this project, we aim to understand how different feature representations and model architectures influence the accuracy and efficiency of sentiment classification.
+
+## Run GloVe + Gaussian Naive Bayes
+
+With the sample CSV and `glove.6B.100d.txt` in `data-bin/`, run from the repo root:
+
+```powershell
+python -m data.word_embeddings
+```
+
+The script classifies reviews as Negative (1–2 stars), Neutral (3), or Positive
+(4–5), using a 70/10/20 train/validation/test split with seed 43. Variance smoothing
+is selected using validation macro F1. Metrics, the three-class confusion matrix,
+word-contribution chart, and misclassified examples are saved in
+`results/word_embeddings/`. Precision, recall, and F1 use macro averaging.
