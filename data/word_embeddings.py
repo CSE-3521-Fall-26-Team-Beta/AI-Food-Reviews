@@ -63,13 +63,13 @@ def review_vector(text):
 train, remaining = train_test_split(
   df,
   test_size = 0.30,
-  random_state = 43,
+  random_state = TRAINING_SEED,
   stratify = df['label'],
 )
 validation, test = train_test_split(
   remaining,
   test_size = 2 / 3,
-  random_state = 43,
+  random_state = TRAINING_SEED,
   stratify = remaining['label'],
 )
 
@@ -209,7 +209,7 @@ errors = errors[errors['label'] != errors['prediction']]
 examples = pd.concat([
   group.sample(
     n = min(3, len(group)),
-    random_state = 43,
+    random_state = TRAINING_SEED,
   )
   for _, group in errors.groupby('label')
 ])

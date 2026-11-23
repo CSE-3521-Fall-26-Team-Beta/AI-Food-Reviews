@@ -64,14 +64,14 @@ print(df['Sentiment'].value_counts())
 train_df, temp_df = train_test_split(
   df,
   test_size = 0.20,
-  random_state = 43,
+  random_state = TRAINING_SEED,
   stratify = df['Sentiment'],
 )
 
 val_df, test_df = train_test_split(
   temp_df,
   test_size = 0.50,
-  random_state = 43,
+  random_state = TRAINING_SEED,
   stratify = temp_df['Sentiment'],
 )
 
