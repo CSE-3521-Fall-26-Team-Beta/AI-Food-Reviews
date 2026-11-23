@@ -6,7 +6,7 @@ from lib.generated_file_walker import walk_auto_generated_files_with_hash
 if not exists(VERIFICATION_HASH_FILE):
   print('Creating verification hashes...')
   
-  with open(VERIFICATION_HASH_FILE, 'w') as verification_file:
+  with open(VERIFICATION_HASH_FILE, 'w', newline = '') as verification_file:
     for _, root_relative_file_path, file_hash in walk_auto_generated_files_with_hash():
       print(f'{root_relative_file_path}: {file_hash}', file = verification_file)
   
