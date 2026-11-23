@@ -4,3 +4,4 @@ __pycache__
 
 # Absolute paths
 /data-bin/
+/results/score_distribution.png
