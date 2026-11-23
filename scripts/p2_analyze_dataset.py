@@ -55,14 +55,22 @@ if not exists(DATASET_ANALYSIS_PATH):
 else:
   print('Dataset analysis already performed')
 
-scores = df['Score'].value_counts().sort_index()
+if not exists(SCORE_DISTRIBUTION_PATH):
+  print('Generating score distribution chart...')
+  
+  df = get_df().copy()
+  
+  scores = df['Score'].value_counts().sort_index()
+  
+  plt.bar(scores.index, scores.values)
+  plt.title('Group Beta - Review Score Distribution')
+  plt.xlabel('Star Rating')
+  plt.ylabel('Number of Reviews')
+  plt.xticks([1, 2, 3, 4, 5])
+  plt.tight_layout()
+  plt.savefig(SCORE_DISTRIBUTION_PATH, dpi = 300)
+  
+  print(f'Score distribution chart saved to {SCORE_DISTRIBUTION_PATH}')
+else:
+  print('Score distribution chart already created')
 
-plt.bar(scores.index, scores.values)
-plt.title('Group Beta - Review Score Distribution')
-plt.xlabel('Star Rating')
-plt.ylabel('Number of Reviews')
-plt.xticks([1, 2, 3, 4, 5])
-plt.tight_layout()
-plt.savefig(SCORE_DISTRIBUTION_PATH, dpi = 300)
-
-print(f'\nChart saved to {SCORE_DISTRIBUTION_PATH}')
