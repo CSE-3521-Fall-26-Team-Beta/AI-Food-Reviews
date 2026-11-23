@@ -73,4 +73,3 @@ if not exists(SCORE_DISTRIBUTION_PATH):
   print(f'Score distribution chart saved to {SCORE_DISTRIBUTION_PATH}')
 else:
   print('Score distribution chart already created')
-

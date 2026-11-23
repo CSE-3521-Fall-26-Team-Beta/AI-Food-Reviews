@@ -14,6 +14,6 @@ def lazy_evaluation(producer: Callable[[], T]) -> Callable[[], T]:
       value = producer()
       value_generated = True
     
-    return value_generated
+    return value
   
   return getter
