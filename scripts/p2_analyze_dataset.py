@@ -14,7 +14,7 @@ if not exists(DATASET_ANALYSIS_PATH):
   with open(DATASET_ANALYSIS_PATH, 'w') as f:
     df = get_df().copy()
     
-    print('\nTotal Reviews:', len(df), file = f)
+    print('Total Reviews:', len(df), file = f)
     
     print('\nScore Distribution:', file = f)
     print(df['Score'].value_counts().sort_index(), file = f)
