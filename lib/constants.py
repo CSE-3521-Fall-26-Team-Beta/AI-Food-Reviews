@@ -6,16 +6,19 @@ _script_dir = dirname(__file__)
 
 # File path constants
 
-DATA_BIN_DIR = f'{_script_dir}/../data-bin'
+REPO_ROOT_DIR = f'{_script_dir}/..'
+
+DATA_BIN_DIR = f'{REPO_ROOT_DIR}/data-bin'
 ARCHIVE_ZIP_NAME = 'archive.zip'
 REVIEWS_CSV_NAME = 'Reviews.csv'
 REVIEWS_CSV_PATH = f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}'
 GLOVE_PATH = f'{DATA_BIN_DIR}/glove.6B.100d.txt'
 
-RESULTS_DIR = f'{_script_dir}/../results'
+RESULTS_DIR = f'{REPO_ROOT_DIR}/results'
 DATASET_ANALYSIS_PATH = f'{RESULTS_DIR}/dataset_analysis.txt'
 SCORE_DISTRIBUTION_PATH = f'{RESULTS_DIR}/score_distribution.png'
 FEATURE_ENGINEERING_REPORT_PATH = f'{RESULTS_DIR}/feature_engineering_report.txt'
+VERIFICATION_HASH_FILE = f'{RESULTS_DIR}/verification_hashes.txt'
 
 WORD_EMBEDDINGS_DIR = f'{RESULTS_DIR}/word_embeddings'
 WORD_EMBEDDINGS_METRICS_PATH = f'{WORD_EMBEDDINGS_DIR}/metrics.csv'
