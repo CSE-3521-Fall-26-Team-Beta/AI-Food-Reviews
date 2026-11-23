@@ -27,26 +27,31 @@ if not exists(DATASET_ANALYSIS_PATH):
       5: 'Positive',
     })
     
-    print('\nSentiment Distribution:')
+    print('\nSentiment Distribution:', file = f)
     counts = df['Sentiment'].value_counts()
     
     for label in ['Negative', 'Neutral', 'Positive']:
       count = counts.get(label, 0)
-      print(f'{label}: {count} ({count / len(df) * 100:.2f}%)')
+      print(f'{label}: {count} ({count / len(df) * 100:.2f}%)', file = f)
     
-    print('\nAverage Review Length:')
-    print(round(df['Text'].fillna('').str.split().str.len().mean(), 2), 'words')
+    print('\nAverage Review Length:', file = f)
+    print(round(df['Text'].fillna('').str.split().str.len().mean(), 2), 'words', file = f)
     
-    print('\nMissing Values:')
-    print(df.isnull().sum())
+    print('\nMissing Values:', file = f)
+    print(df.isnull().sum(), file = f)
     
-    print('\nDuplicate Review Texts:')
-    print(df['Text'].duplicated().sum())
+    print('\nDuplicate Review Texts:', file = f)
+    print(df['Text'].duplicated().sum(), file = f)
     
-    print('\nDuplicate Review Records:')
-    print(df.duplicated(
-      subset = ['ProductId', 'UserId', 'Score', 'Summary', 'Text'],
-    ).sum())
+    print('\nDuplicate Review Records:', file = f)
+    print(
+      df.duplicated(
+        subset = ['ProductId', 'UserId', 'Score', 'Summary', 'Text'],
+      ).sum(),
+      file = f,
+    )
+  
+  print(f'Dataset analysis saved to {DATASET_ANALYSIS_PATH}')
 else:
   print('Dataset analysis already performed')
 
