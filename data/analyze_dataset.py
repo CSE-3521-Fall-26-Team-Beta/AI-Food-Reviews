@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('data-bin/group_sample_seed43.csv')
+df = pd.read_csv(SAMPLE_CSV_PATH)
 
 print('\nTotal Reviews:', len(df))
 

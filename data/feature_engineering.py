@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Load Group Beta dataset
-df = pd.read_csv('data-bin/group_sample_seed43.csv')
+df = pd.read_csv(SAMPLE_CSV_PATH)
 
 # Clean review text
 def clean_text(text):
