@@ -40,7 +40,7 @@ if not exists(FEATURE_ENGINEERING_REPORT_PATH):
         .sum()
     )
     
-    print('\nConflicting Sentiment Labels:', file = f)
+    print('Conflicting Sentiment Labels:', file = f)
     print('Review texts with conflicting labels:', conflicts, file = f)
     
     # Remove duplicate reviews
