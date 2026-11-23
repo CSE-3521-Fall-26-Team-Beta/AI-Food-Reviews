@@ -6,7 +6,7 @@ _script_dir = dirname(__file__)
 
 # File path constants
 
-REPO_ROOT_DIR = f'{_script_dir}/..'
+REPO_ROOT_DIR = dirname(_script_dir)
 
 DATA_BIN_DIR = f'{REPO_ROOT_DIR}/data-bin'
 ARCHIVE_ZIP_NAME = 'archive.zip'
