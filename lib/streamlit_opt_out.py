@@ -4,7 +4,7 @@ from os.path import exists
 OPT_OUT_MATCH_CONTENTS = '[browser]\ngatherUsageStats = false'
 OPT_OUT_FULL_CONTENTS = f'{OPT_OUT_MATCH_CONTENTS}\n'
 
-def opt_out():
+def ensure_streamlit_opted_out():
   if 'USERPROFILE' not in environ:
     return
   
