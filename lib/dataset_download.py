@@ -44,17 +44,17 @@ def _kaggle_raw_api_download_archive():
   response = requests.post(
     'https://api.kaggle.com/v1/datasets.DatasetApiService/DownloadDataset',
     json = {
-      "ownerSlug": "snap",
-      "datasetSlug": "amazon-fine-food-reviews",
-      "fileName": None,
-      "datasetVersionNumber": 2,
-      "raw": False,
-      "hashLink": None,
+      'ownerSlug': 'snap',
+      'datasetSlug': 'amazon-fine-food-reviews',
+      'fileName': None,
+      'datasetVersionNumber': 2,
+      'raw': False,
+      'hashLink': None,
     },
     headers = {
       # User agent header is required, otherwise api will return a 404
-      "User-Agent": "kaggle-api/v1.7.0",
-      "Content-Type": "application/json",
+      'User-Agent': 'kaggle-api/v1.7.0',
+      'Content-Type': 'application/json',
     }
   )
   
