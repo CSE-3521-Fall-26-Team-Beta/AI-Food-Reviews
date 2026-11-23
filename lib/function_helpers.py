@@ -1,4 +1,9 @@
-def lazy_evaluation(producer):
+from collections.abc import Callable
+from typing import TypeVar
+
+T = TypeVar('T')
+
+def lazy_evaluation(producer: Callable[[], T]) -> Callable[[], T]:
   value_generated = False
   value = None
   
