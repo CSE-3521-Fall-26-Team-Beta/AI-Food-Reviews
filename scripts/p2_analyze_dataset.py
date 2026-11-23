@@ -9,7 +9,7 @@ from lib.generate_group_sample import get_sample_df
 if not exists(DATASET_ANALYSIS_PATH):
   print('Performing dataset analysis...')
   
-  with open(DATASET_ANALYSIS_PATH, 'w') as f:
+  with open(DATASET_ANALYSIS_PATH, 'w', newline = '') as f:
     df = get_sample_df()
     
     print('Total Reviews:', len(df), file = f)
