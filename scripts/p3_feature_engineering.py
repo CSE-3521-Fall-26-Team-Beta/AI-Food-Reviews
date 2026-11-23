@@ -5,14 +5,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from lib.constants import FEATURE_ENGINEERING_REPORT_PATH, TRAINING_SEED
-from lib.generate_group_sample import get_sample_df
+from lib.ml_helpers import get_annotated_sample_df
 
 if not exists(FEATURE_ENGINEERING_REPORT_PATH):
   print('Creating feature engineering report...')
   
   with open(FEATURE_ENGINEERING_REPORT_PATH, 'w', newline = '') as f:
     # Load Group Beta dataset
-    df = get_sample_df()
+    df = get_annotated_sample_df()
     
     # Clean review text
     def clean_text(text):
@@ -22,15 +22,6 @@ if not exists(FEATURE_ENGINEERING_REPORT_PATH):
       return text.strip()
     
     df['Text'] = df['Text'].fillna('').apply(clean_text)
-    
-    # Assign sentiment labels
-    df['Sentiment'] = df['Score'].map({
-      1: 'Negative',
-      2: 'Negative',
-      3: 'Neutral',
-      4: 'Positive',
-      5: 'Positive',
-    })
     
     # Check for conflicting labels in identical reviews
     conflicts = (

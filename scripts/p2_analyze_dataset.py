@@ -1,29 +1,20 @@
 from os.path import exists
 
-import pandas as pd
 import matplotlib.pyplot as plt
 
 from lib.constants import DATASET_ANALYSIS_PATH, SCORE_DISTRIBUTION_PATH
-from lib.generate_group_sample import get_sample_df
+from lib.ml_helpers import get_annotated_sample_df
 
 if not exists(DATASET_ANALYSIS_PATH):
   print('Performing dataset analysis...')
   
   with open(DATASET_ANALYSIS_PATH, 'w', newline = '') as f:
-    df = get_sample_df()
+    df = get_annotated_sample_df()
     
     print('Total Reviews:', len(df), file = f)
     
     print('\nScore Distribution:', file = f)
     print(df['Score'].value_counts().sort_index(), file = f)
-    
-    df['Sentiment'] = df['Score'].map({
-      1: 'Negative',
-      2: 'Negative',
-      3: 'Neutral',
-      4: 'Positive',
-      5: 'Positive',
-    })
     
     print('\nSentiment Distribution:', file = f)
     counts = df['Sentiment'].value_counts()
@@ -56,7 +47,7 @@ else:
 if not exists(SCORE_DISTRIBUTION_PATH):
   print('Generating score distribution chart...')
   
-  df = get_sample_df()
+  df = get_annotated_sample_df()
   
   scores = df['Score'].value_counts().sort_index()
   
