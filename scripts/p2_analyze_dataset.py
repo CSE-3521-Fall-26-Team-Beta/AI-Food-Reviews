@@ -3,16 +3,14 @@ from os.path import exists
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from lib.constants import DATASET_ANALYSIS_PATH, SAMPLE_CSV_PATH, SCORE_DISTRIBUTION_PATH
-from lib.function_helpers import lazy_evaluation
-
-get_df = lazy_evaluation(lambda: pd.read_csv(SAMPLE_CSV_PATH))
+from lib.constants import DATASET_ANALYSIS_PATH, SCORE_DISTRIBUTION_PATH
+from lib.generate_group_sample import get_sample_df
 
 if not exists(DATASET_ANALYSIS_PATH):
   print('Performing dataset analysis...')
   
   with open(DATASET_ANALYSIS_PATH, 'w') as f:
-    df = get_df().copy()
+    df = get_sample_df()
     
     print('Total Reviews:', len(df), file = f)
     
@@ -58,7 +56,7 @@ else:
 if not exists(SCORE_DISTRIBUTION_PATH):
   print('Generating score distribution chart...')
   
-  df = get_df().copy()
+  df = get_sample_df()
   
   scores = df['Score'].value_counts().sort_index()
   

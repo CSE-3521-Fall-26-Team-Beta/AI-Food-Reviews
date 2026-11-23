@@ -1,9 +1,10 @@
 from os.path import exists
 
-from pandas import read_csv
+from pandas import DataFrame, read_csv
 
 from .constants import REVIEWS_CSV_PATH, SAMPLE_CSV_NAME, SAMPLE_CSV_PATH, TRAINING_SAMPLE_SIZE, TRAINING_SEED
 from .dataset_download import ensure_results_csv_exists
+from .function_helpers import lazy_evaluation
 
 # Adapted from script in Canvas announcements
 
@@ -31,3 +32,11 @@ def ensure_sample_csv_exists():
     return True
   else:
     return False
+
+@lazy_evaluation
+def _get_sample_df():
+  ensure_sample_csv_exists()
+  return read_csv(SAMPLE_CSV_PATH)
+
+def get_sample_df() -> DataFrame:
+  return _get_sample_df().copy()

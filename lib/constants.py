@@ -15,6 +15,7 @@ GLOVE_PATH = f'{DATA_BIN_DIR}/glove.6B.100d.txt'
 RESULTS_DIR = f'{_script_dir}/../results'
 DATASET_ANALYSIS_PATH = f'{RESULTS_DIR}/dataset_analysis.txt'
 SCORE_DISTRIBUTION_PATH = f'{RESULTS_DIR}/score_distribution.png'
+FEATURE_ENGINEERING_REPORT_PATH = f'{RESULTS_DIR}/feature_engineering_report.txt'
 
 WORD_EMBEDDINGS_DIR = f'{RESULTS_DIR}/word_embeddings'
 WORD_EMBEDDINGS_METRICS_PATH = f'{WORD_EMBEDDINGS_DIR}/metrics.csv'
