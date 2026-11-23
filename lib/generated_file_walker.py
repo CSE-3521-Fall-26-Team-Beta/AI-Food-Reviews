@@ -12,7 +12,7 @@ def walk_auto_generated_files():
     else:
       # Trim results dir walk to not contain verification hash file
       if dir_path.replace('\\', '/') == RESULTS_DIR.replace('\\', '/'):
-        del dir_names[dir_names.index(VERIFICATION_HASH_NAME)]
+        del file_names[file_names.index(VERIFICATION_HASH_NAME)]
       
       for file_name in file_names:
         full_file_path = f'{dir_path}/{file_name}'
