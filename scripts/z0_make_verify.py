@@ -9,7 +9,10 @@ if not exists(VERIFICATION_HASH_FILE):
   for dir_path, dir_names, file_names in walk(REPO_ROOT_DIR):
     if dir_path == REPO_ROOT_DIR:
       dir_names[:] = ['data-bin', 'results']
-    print(dir_path)
+    else:
+      for file_name in file_names:
+        root_relative_file_path = f'{dir_path}/{file_name}'[len(REPO_ROOT_DIR) + 1 :].replace('\\', '/')
+        print(root_relative_file_path)
   
   exit()
   with open(VERIFICATION_HASH_FILE, 'w') as f:
