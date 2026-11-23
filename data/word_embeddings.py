@@ -21,7 +21,7 @@ root = Path(__file__).resolve().parents[1]
 output = root / 'results' / 'word_embeddings'
 output.mkdir(parents = True, exist_ok = True)
 
-df = pd.read_csv(root / 'data-bin' / 'group_sample_seed43.csv')
+df = pd.read_csv(REVIEWS_CSV_PATH)
 df = df[df['Score'].isin([1, 2, 3, 4, 5])]
 df = df.dropna(subset = ['Text']).copy()
 
@@ -45,11 +45,10 @@ df = df.drop_duplicates('Text')
 
 embeddings = {}
 
-with open(root / 'data-bin' / 'glove.6B.100d.txt', encoding = 'utf-8') as file:
+with open(GLOVE_PATH, encoding = 'utf-8') as file:
   for line in file:
     parts = line.split()
     embeddings[parts[0]] = np.array(parts[1:], dtype = np.float32)
-
 
 def review_vector(text):
   words = re.findall(r'[a-z]+(?:\'[a-z]+)?', text)

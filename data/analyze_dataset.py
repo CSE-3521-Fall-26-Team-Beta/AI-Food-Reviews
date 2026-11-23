@@ -45,6 +45,6 @@ plt.xlabel('Star Rating')
 plt.ylabel('Number of Reviews')
 plt.xticks([1, 2, 3, 4, 5])
 plt.tight_layout()
-plt.savefig('data-bin/score_distribution.png', dpi = 300)
+plt.savefig(SCORE_DISTRIBUTION_PATH, dpi = 300)
 
-print('\nChart saved to data-bin/score_distribution.png')
+print(f'\nChart saved to {SCORE_DISTRIBUTION_PATH}')

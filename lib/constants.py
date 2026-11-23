@@ -8,6 +8,8 @@ DATA_BIN_DIR = f'{_script_dir}/../data-bin'
 ARCHIVE_ZIP_NAME = 'archive.zip'
 REVIEWS_CSV_NAME = 'Reviews.csv'
 REVIEWS_CSV_PATH = f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}'
+SCORE_DISTRIBUTION_PATH = f'{DATA_BIN_DIR}/score_distribution.png'
+GLOVE_PATH = f'{DATA_BIN_DIR}/glove.6B.100d.txt'
 
 # Seeding constants
 TRAINING_SEED = 43
