@@ -3,7 +3,7 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 
-from scripts.feature_engineering import X_test, X_train, test_df, train_df
+from scripts.p3_feature_engineering import X_test, X_train, test_df, train_df
 
 if __name__ == '__main__':
   # Give each sentiment equal weight even though most reviews are positive.
