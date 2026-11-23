@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from lib.constants import SAMPLE_CSV_PATH
+from lib.constants import SAMPLE_CSV_PATH, TRAINING_SEED
 
 # Load Group Beta dataset
 df = pd.read_csv(SAMPLE_CSV_PATH)
