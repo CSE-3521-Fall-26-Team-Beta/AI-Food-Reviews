@@ -18,8 +18,8 @@ from sklearn.metrics import (
 )
 
 root = Path(__file__).resolve().parents[1]
-output = root / 'results' / 'word_embeddings'
-output.mkdir(parents = True, exist_ok = True)
+output = WORD_EMBEDDINGS_DIR
+Path(output).mkdir(parents = True, exist_ok = True)
 
 df = pd.read_csv(REVIEWS_CSV_PATH)
 df = df[df['Score'].isin([1, 2, 3, 4, 5])]
@@ -121,13 +121,13 @@ print('Selected model:', model)
 
 show_results('Majority baseline', baseline)
 show_results('Word embeddings + Gaussian Naive Bayes', predictions)
-pd.DataFrame(results).to_csv(output / 'metrics.csv', index = False)
+pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False)
 pd.DataFrame(classification_report(
   y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
-)).T.to_csv(output / 'classification_report.csv')
+)).T.to_csv(WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH)
 pd.DataFrame(
   confusion_matrix(y_test, predictions, labels = labels), index = labels, columns = labels,
-).to_csv(output / 'confusion_matrix.csv', index_label = 'Actual / Predicted')
+).to_csv(WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH, index_label = 'Actual / Predicted')
 
 ConfusionMatrixDisplay.from_predictions(
   y_test,
@@ -137,7 +137,7 @@ ConfusionMatrixDisplay.from_predictions(
   cmap = 'Blues',
 )
 plt.tight_layout()
-plt.savefig(output / 'confusion_matrix.png', dpi = 200)
+plt.savefig(WORD_EMBEDDINGS_CONFUSION_MATRIX_IMAGE_PATH, dpi = 200)
 plt.close()
 
 word_counts = Counter(
@@ -192,14 +192,14 @@ fig, axes = plt.subplots(1, 3, figsize = (16, 6))
 for ax, label, color in zip(axes, labels, ['tomato', 'steelblue', 'seagreen']):
   words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]
   words = words.nlargest(10, 'Contribution').sort_values('Contribution')
-  words.to_csv(output / f'{label.lower()}_words.csv', index = False)
+  words.to_csv(f'{WORD_EMBEDDINGS_LABELED_WORDS_DIR}/{label.lower()}_words.csv', index = False)
   print(f'\n{label} words:\n', words.to_string(index = False))
   ax.barh(words['Word'], words['Contribution'], color = color)
   ax.set_title(f'Words associated with {label.lower()}')
   ax.set_xlabel('Mean change in relative class log score\n(original minus word removed)')
 fig.suptitle('GloVe + Gaussian NB: training-review word contributions')
 fig.tight_layout()
-fig.savefig(output / 'word_contributions.png', dpi = 200)
+fig.savefig(WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH, dpi = 200)
 plt.close(fig)
 
 errors = test[['Text', 'Score', 'label']].copy()
@@ -212,5 +212,5 @@ examples = pd.concat([
   )
   for _, group in errors.groupby('label')
 ])
-examples.to_csv(output / 'misclassified_reviews.csv', index = False)
+examples.to_csv(WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH, index = False)
 print('Results saved to:', output)
