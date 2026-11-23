@@ -1,6 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from lib.constants import SAMPLE_CSV_PATH, SCORE_DISTRIBUTION_PATH
+
 df = pd.read_csv(SAMPLE_CSV_PATH)
 
 print('\nTotal Reviews:', len(df))

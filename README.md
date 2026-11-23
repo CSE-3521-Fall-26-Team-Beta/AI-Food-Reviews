@@ -23,7 +23,7 @@ Finally, we will develop and deploy a Streamlit web application that allows user
 With the sample CSV and `glove.6B.100d.txt` in `data-bin/`, run from the repo root:
 
 ```powershell
-python -m data.word_embeddings
+python -m scripts.p4_word_embeddings
 ```
 
 The script classifies reviews as Negative (1–2 stars), Neutral (3), or Positive
