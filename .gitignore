@@ -4,4 +4,5 @@ __pycache__
 
 # Absolute paths
 /data-bin/
+/results/dataset_analysis.txt
 /results/score_distribution.png
