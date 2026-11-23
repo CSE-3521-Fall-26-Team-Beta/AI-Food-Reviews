@@ -63,27 +63,27 @@ print(df['Sentiment'].value_counts())
 # Split data: 80% training, 10% validation, 10% testing
 train_df, temp_df = train_test_split(
   df,
-  test_size=0.20,
-  random_state=43,
-  stratify=df['Sentiment']
+  test_size = 0.20,
+  random_state = 43,
+  stratify = df['Sentiment'],
 )
 
 val_df, test_df = train_test_split(
   temp_df,
-  test_size=0.50,
-  random_state=43,
-  stratify=temp_df['Sentiment']
+  test_size = 0.50,
+  random_state = 43,
+  stratify = temp_df['Sentiment'],
 )
 
 # Configure TF-IDF
 vectorizer = TfidfVectorizer(
-  lowercase=True,
-  stop_words='english',
-  max_features=10000,
-  min_df=5,
-  max_df=0.95,
-  ngram_range=(1, 2),
-  sublinear_tf=True
+  lowercase = True,
+  stop_words = 'english',
+  max_features = 10000,
+  min_df = 5,
+  max_df = 0.95,
+  ngram_range = (1, 2),
+  sublinear_tf = True,
 )
 
 # Fit only on training data to prevent data leakage

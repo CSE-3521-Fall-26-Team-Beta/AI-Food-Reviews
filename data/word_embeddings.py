@@ -19,11 +19,11 @@ from sklearn.metrics import (
 
 root = Path(__file__).resolve().parents[1]
 output = root / 'results' / 'word_embeddings'
-output.mkdir(parents=True, exist_ok=True)
+output.mkdir(parents = True, exist_ok = True)
 
 df = pd.read_csv(root / 'data-bin' / 'group_sample_seed43.csv')
 df = df[df['Score'].isin([1, 2, 3, 4, 5])]
-df = df.dropna(subset=['Text']).copy()
+df = df.dropna(subset = ['Text']).copy()
 
 labels = ['Negative', 'Neutral', 'Positive']
 df['label'] = df['Score'].map({
@@ -35,8 +35,8 @@ df['label'] = df['Score'].map({
 })
 
 df['Text'] = df['Text'].str.lower()
-df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex=True)
-df['Text'] = df['Text'].str.replace(r'\s+', ' ', regex=True).str.strip()
+df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex = True)
+df['Text'] = df['Text'].str.replace(r'\s+', ' ', regex = True).str.strip()
 df = df[df['Text'] != '']
 
 label_counts = df.groupby('Text')['label'].nunique()
@@ -45,10 +45,10 @@ df = df.drop_duplicates('Text')
 
 embeddings = {}
 
-with open(root / 'data-bin' / 'glove.6B.100d.txt', encoding='utf-8') as file:
+with open(root / 'data-bin' / 'glove.6B.100d.txt', encoding = 'utf-8') as file:
   for line in file:
     parts = line.split()
-    embeddings[parts[0]] = np.array(parts[1:], dtype=np.float32)
+    embeddings[parts[0]] = np.array(parts[1:], dtype = np.float32)
 
 
 def review_vector(text):
@@ -60,15 +60,17 @@ def review_vector(text):
   
   return np.mean(vectors, axis=0)
 
-
 train, remaining = train_test_split(
   df,
-  test_size=0.30,
-  random_state=43,
-  stratify=df['label'],
+  test_size = 0.30,
+  random_state = 43,
+  stratify = df['label'],
 )
 validation, test = train_test_split(
-  remaining, test_size=2 / 3, random_state=43, stratify=remaining['label']
+  remaining,
+  test_size = 2 / 3,
+  random_state = 43,
+  stratify = remaining['label'],
 )
 
 X_train = np.array([review_vector(text) for text in train['Text']])
@@ -80,10 +82,14 @@ y_test = test['label']
 
 best_f1 = -1
 for smoothing in [1e-9, 1e-7, 1e-5]:
-  candidate = GaussianNB(var_smoothing=smoothing)
+  candidate = GaussianNB(var_smoothing = smoothing)
   candidate.fit(X_train, y_train)
-  score = f1_score(validation['label'], candidate.predict(X_validation),
-                    average='macro', zero_division=0)
+  score = f1_score(
+    validation['label'],
+    candidate.predict(X_validation),
+    average = 'macro',
+    zero_division = 0,
+  )
   if score > best_f1:
     best_f1 = score
     model = candidate
@@ -98,9 +104,9 @@ def show_results(name, predicted):
   scores = {
     'Model': name,
     'Accuracy': accuracy_score(y_test, predicted),
-    'Precision_macro': precision_score(y_test, predicted, labels=labels, average='macro', zero_division=0),
-    'Recall_macro': recall_score(y_test, predicted, labels=labels, average='macro', zero_division=0),
-    'F1_macro': f1_score(y_test, predicted, labels=labels, average='macro', zero_division=0),
+    'Precision_macro': precision_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+    'Recall_macro': recall_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+    'F1_macro': f1_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
   }
   results.append(scores)
   print('\n' + name)
@@ -116,23 +122,23 @@ print('Selected model:', model)
 
 show_results('Majority baseline', baseline)
 show_results('Word embeddings + Gaussian Naive Bayes', predictions)
-pd.DataFrame(results).to_csv(output / 'metrics.csv', index=False)
+pd.DataFrame(results).to_csv(output / 'metrics.csv', index = False)
 pd.DataFrame(classification_report(
-  y_test, predictions, labels=labels, output_dict=True, zero_division=0
+  y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
 )).T.to_csv(output / 'classification_report.csv')
 pd.DataFrame(
-  confusion_matrix(y_test, predictions, labels=labels), index=labels, columns=labels
-).to_csv(output / 'confusion_matrix.csv', index_label='Actual / Predicted')
+  confusion_matrix(y_test, predictions, labels = labels), index = labels, columns = labels,
+).to_csv(output / 'confusion_matrix.csv', index_label = 'Actual / Predicted')
 
 ConfusionMatrixDisplay.from_predictions(
   y_test,
   predictions,
-  labels=labels,
-  display_labels=labels,
-  cmap='Blues',
+  labels = labels,
+  display_labels = labels,
+  cmap = 'Blues',
 )
 plt.tight_layout()
-plt.savefig(output / 'confusion_matrix.png', dpi=200)
+plt.savefig(output / 'confusion_matrix.png', dpi = 200)
 plt.close()
 
 word_counts = Counter(
@@ -148,7 +154,7 @@ review_counts = Counter()
 
 def class_scores(vectors):
   probabilities = model.predict_log_proba(vectors)
-  return probabilities - (probabilities.sum(axis=1, keepdims=True) - probabilities) / 2
+  return probabilities - (probabilities.sum(axis = 1, keepdims = True) - probabilities) / 2
 
 training_scores = class_scores(X_train)
 
@@ -183,26 +189,29 @@ word_scores = pd.DataFrame([
   for word in contributions if review_counts[word] >= 5
   for i, label in enumerate(model.classes_)
 ])
-fig, axes = plt.subplots(1, 3, figsize=(16, 6))
+fig, axes = plt.subplots(1, 3, figsize = (16, 6))
 for ax, label, color in zip(axes, labels, ['tomato', 'steelblue', 'seagreen']):
   words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]
   words = words.nlargest(10, 'Contribution').sort_values('Contribution')
-  words.to_csv(output / f'{label.lower()}_words.csv', index=False)
-  print(f'\n{label} words:\n', words.to_string(index=False))
-  ax.barh(words['Word'], words['Contribution'], color=color)
+  words.to_csv(output / f'{label.lower()}_words.csv', index = False)
+  print(f'\n{label} words:\n', words.to_string(index = False))
+  ax.barh(words['Word'], words['Contribution'], color = color)
   ax.set_title(f'Words associated with {label.lower()}')
   ax.set_xlabel('Mean change in relative class log score\n(original minus word removed)')
 fig.suptitle('GloVe + Gaussian NB: training-review word contributions')
 fig.tight_layout()
-fig.savefig(output / 'word_contributions.png', dpi=200)
+fig.savefig(output / 'word_contributions.png', dpi = 200)
 plt.close(fig)
 
 errors = test[['Text', 'Score', 'label']].copy()
 errors['prediction'] = predictions
 errors = errors[errors['label'] != errors['prediction']]
 examples = pd.concat([
-  group.sample(n=min(3, len(group)), random_state=43)
+  group.sample(
+    n = min(3, len(group)),
+    random_state = 43,
+  )
   for _, group in errors.groupby('label')
 ])
-examples.to_csv(output / 'misclassified_reviews.csv', index=False)
+examples.to_csv(output / 'misclassified_reviews.csv', index = False)
 print('Results saved to:', output)

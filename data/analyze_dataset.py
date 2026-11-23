@@ -34,7 +34,7 @@ print(df['Text'].duplicated().sum())
 
 print('\nDuplicate Review Records:')
 print(df.duplicated(
-  subset=['ProductId', 'UserId', 'Score', 'Summary', 'Text']
+  subset = ['ProductId', 'UserId', 'Score', 'Summary', 'Text'],
 ).sum())
 
 scores = df['Score'].value_counts().sort_index()
@@ -45,6 +45,6 @@ plt.xlabel('Star Rating')
 plt.ylabel('Number of Reviews')
 plt.xticks([1, 2, 3, 4, 5])
 plt.tight_layout()
-plt.savefig('data-bin/score_distribution.png', dpi=300)
+plt.savefig('data-bin/score_distribution.png', dpi = 300)
 
 print('\nChart saved to data-bin/score_distribution.png')
