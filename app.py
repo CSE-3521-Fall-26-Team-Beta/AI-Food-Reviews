@@ -1,4 +1,5 @@
 from pathlib import Path
+from sys import platform
 
 import pandas as pd
 import streamlit as st
@@ -36,11 +37,14 @@ with prediction:
   if submitted and not review.strip():
     st.warning('Enter a food review before requesting a prediction.')
   
-  models_list = (
+  models_list = [
     ('Word Embeddings + Gaussian Naive Bayes', word_embeddings_gaussian_naive_bayes_categorize),
     ('TF-IDF + Logistic Regression', tf_idf_logistic_regression_categorize),
-    ('DistilBERT', distilbert_categorize),
-  )
+  ]
+  
+  if platform != 'linux':
+    # DistilBERT crashes Streamlit, so only add it if not in production
+    models_list.append(('DistilBERT', distilbert_categorize))
   
   for column, model_info in zip(
     st.columns(3), models_list
