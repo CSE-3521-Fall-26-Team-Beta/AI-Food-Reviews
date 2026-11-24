@@ -1,5 +1,6 @@
 'Generates word embeddings and Gaussian Naive Bayes classical model. Run from the repository root with "python -m scripts.p4_word_embeddings" to train, and [TODO] "python -m scripts.p4_word_embeddings --review <your review text in quotes>" to predict.'
 
+import argparse
 import re
 from collections import Counter
 from pathlib import Path
@@ -39,206 +40,241 @@ from lib.constants import (
 from lib.glove_download import ensure_glove_exists
 from lib.ml_helpers import get_annotated_sample_df, print_and_write
 
-if not exists(WORD_EMBEDDINGS_REPORT_PATH):
-  print('Calculating word embeddings...')
+_X_test = None
+_X_train = None
+_test_df = None
+_train_df = None
+_transform_data = None
+_model = None
+
+def _init_model_vars():
+  global _X_test, _X_train, _test_df, _train_df, _transform_data, _model
   
-  with open(WORD_EMBEDDINGS_REPORT_PATH, 'w', newline = '') as f:
-    root = Path(__file__).resolve().parents[1]
-    output = WORD_EMBEDDINGS_DIR
-    Path(output).mkdir(parents = True, exist_ok = True)
+  if _X_test == None:
+    _X_test, _X_train, _test_df, _train_df, _transform_data = perform_feature_engineering()
     
-    # Note: this previously used the entire dataset not just the sample
-    # Tweaked to only use the sample
-    df = get_annotated_sample_df()
-    df = df[df['Score'].isin([1, 2, 3, 4, 5])]
-    df = df.dropna(subset = ['Text']).copy()
+    # Give each sentiment equal weight even though most reviews are positive.
+    _model = LogisticRegression(class_weight = 'balanced', max_iter = 300)
+    _model.fit(_X_train, _train_df['Sentiment'])
+
+def train():
+  if not exists(WORD_EMBEDDINGS_REPORT_PATH):
+    print('Calculating word embeddings...')
     
-    labels = ['Negative', 'Neutral', 'Positive']
-    
-    df['Text'] = df['Text'].str.lower()
-    df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex = True)
-    df['Text'] = df['Text'].str.replace(r'\s+', ' ', regex = True).str.strip()
-    df = df[df['Text'] != '']
-    
-    label_counts = df.groupby('Text')['Sentiment'].nunique()
-    df = df[df['Text'].isin(label_counts[label_counts == 1].index)]
-    df = df.drop_duplicates('Text')
-    
-    embeddings = {}
-    
-    ensure_glove_exists()
-    with open(GLOVE_PATH, encoding = 'utf-8') as file:
-      for line in file:
-        parts = line.split()
-        embeddings[parts[0]] = np.array(parts[1:], dtype = np.float32)
-    
-    def review_vector(text):
-      words = re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
-      vectors = [embeddings[word] for word in words if word in embeddings]
+    with open(WORD_EMBEDDINGS_REPORT_PATH, 'w', newline = '') as f:
+      root = Path(__file__).resolve().parents[1]
+      output = WORD_EMBEDDINGS_DIR
+      Path(output).mkdir(parents = True, exist_ok = True)
       
-      if len(vectors) == 0:
-        return np.zeros(100)
+      # Note: this previously used the entire dataset not just the sample
+      # Tweaked to only use the sample
+      df = get_annotated_sample_df()
+      df = df[df['Score'].isin([1, 2, 3, 4, 5])]
+      df = df.dropna(subset = ['Text']).copy()
       
-      return np.mean(vectors, axis=0)
-    
-    train, remaining = train_test_split(
-      df,
-      test_size = 0.30,
-      random_state = TRAINING_SEED,
-      stratify = df['Sentiment'],
-    )
-    validation, test = train_test_split(
-      remaining,
-      test_size = 2 / 3,
-      random_state = TRAINING_SEED,
-      stratify = remaining['Sentiment'],
-    )
-    
-    X_train = np.array([review_vector(text) for text in train['Text']])
-    X_validation = np.array([review_vector(text) for text in validation['Text']])
-    X_test = np.array([review_vector(text) for text in test['Text']])
-    
-    y_train = train['Sentiment']
-    y_test = test['Sentiment']
-    
-    best_f1 = -1
-    for smoothing in [1e-9, 1e-7, 1e-5]:
-      candidate = GaussianNB(var_smoothing = smoothing)
-      candidate.fit(X_train, y_train)
-      score = f1_score(
-        validation['Sentiment'],
-        candidate.predict(X_validation),
-        average = 'macro',
-        zero_division = 0,
-      )
-      if score > best_f1:
-        best_f1 = score
-        model = candidate
-    predictions = model.predict(X_test)
-    
-    majority_label = y_train.mode()[0]
-    baseline = np.full(len(y_test), majority_label)
-    
-    results = []
-    
-    def show_results(name, predicted):
-      scores = {
-        'Model': name,
-        'Accuracy': accuracy_score(y_test, predicted),
-        'Precision_macro': precision_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
-        'Recall_macro': recall_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
-        'F1_macro': f1_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
-      }
-      results.append(scores)
-      print_and_write('\n' + name, file = f)
-      for metric in ['Accuracy', 'Precision_macro', 'Recall_macro', 'F1_macro']:
-        print_and_write(metric + ':', round(scores[metric], 4), file = f)
-    
-    print_and_write('Training reviews:', len(train), file = f)
-    print_and_write('Validation reviews:', len(validation), file = f)
-    print_and_write('Test reviews:', len(test), file = f)
-    print_and_write('Features per review:', X_train.shape[1], file = f)
-    print_and_write('Selected model:', model, file = f)
-    
-    show_results('Majority baseline', baseline)
-    show_results('Word embeddings + Gaussian Naive Bayes', predictions)
-    makedirs(RESULTS_DIR, exist_ok = True)
-    pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False, lineterminator = '\n')
-    pd.DataFrame(classification_report(
-      y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
-    )).T.to_csv(WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH, lineterminator = '\n')
-    pd.DataFrame(
-      confusion_matrix(y_test, predictions, labels = labels), index = labels, columns = labels,
-    ).to_csv(WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH, index_label = 'Actual / Predicted', lineterminator = '\n')
-    
-    ConfusionMatrixDisplay.from_predictions(
-      y_test,
-      predictions,
-      labels = labels,
-      display_labels = labels,
-      cmap = 'Blues',
-    )
-    plt.tight_layout()
-    plt.savefig(WORD_EMBEDDINGS_CONFUSION_MATRIX_IMAGE_PATH, dpi = 200)
-    plt.close()
-    
-    word_counts = Counter(
-      word
-      for text in train['Text']
-      for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
-    )
-    print_and_write('Training vocabulary:', len(word_counts), file = f)
-    print_and_write('Training words found in GloVe:', sum(word in embeddings for word in word_counts), file = f)
-    
-    contributions = {}
-    review_counts = Counter()
-    
-    def class_scores(vectors):
-      probabilities = model.predict_log_proba(vectors)
-      return probabilities - (probabilities.sum(axis = 1, keepdims = True) - probabilities) / 2
-    
-    training_scores = class_scores(X_train)
-    
-    for text, vector, original_score in zip(train['Text'], X_train, training_scores):
-      counts = Counter(
-        word for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
-        if word in embeddings
-      )
-      total = sum(counts.values())
-      words = [word for word in counts if word_counts[word] >= 5 and counts[word] < total]
-      if not words:
-        continue
-      without_words = np.array([
-        (vector * total - embeddings[word] * counts[word]) / (total - counts[word])
-        for word in words
-      ])
-      changes = original_score - class_scores(without_words)
-      for word, change in zip(words, changes):
-        if word not in contributions:
-          contributions[word] = np.zeros(3)
-        contributions[word] += change
-        review_counts[word] += 1
-    
-    word_scores = pd.DataFrame([
-      {
-        'Word': word,
-        'Sentiment': label,
-        'Contribution': contributions[word][i] / review_counts[word],
-        'Count': word_counts[word],
-        'Reviews': review_counts[word],
-      }
-      for word in contributions if review_counts[word] >= 5
-      for i, label in enumerate(model.classes_)
-    ])
-    makedirs(WORD_EMBEDDINGS_LABELED_WORDS_DIR, exist_ok = True)
-    fig, axes = plt.subplots(1, 3, figsize = (16, 6))
-    for ax, label, color in zip(axes, labels, ['tomato', 'steelblue', 'seagreen']):
-      words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]
-      words = words.nlargest(10, 'Contribution').sort_values('Contribution')
-      words.to_csv(f'{WORD_EMBEDDINGS_LABELED_WORDS_DIR}/{label.lower()}_words.csv', index = False, lineterminator = '\n')
-      print_and_write(f'\n{label} words:\n', words.to_string(index = False), file = f)
-      ax.barh(words['Word'], words['Contribution'], color = color)
-      ax.set_title(f'Words associated with {label.lower()}')
-      ax.set_xlabel('Mean change in relative class log score\n(original minus word removed)')
-    fig.suptitle('GloVe + Gaussian NB: training-review word contributions')
-    fig.tight_layout()
-    fig.savefig(WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH, dpi = 200)
-    plt.close(fig)
-    
-    errors = test[['Text', 'Score', 'Sentiment']].copy()
-    errors['prediction'] = predictions
-    errors = errors[errors['Sentiment'] != errors['prediction']]
-    examples = pd.concat([
-      group.sample(
-        n = min(3, len(group)),
+      labels = ['Negative', 'Neutral', 'Positive']
+      
+      df['Text'] = df['Text'].str.lower()
+      df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex = True)
+      df['Text'] = df['Text'].str.replace(r'\s+', ' ', regex = True).str.strip()
+      df = df[df['Text'] != '']
+      
+      label_counts = df.groupby('Text')['Sentiment'].nunique()
+      df = df[df['Text'].isin(label_counts[label_counts == 1].index)]
+      df = df.drop_duplicates('Text')
+      
+      embeddings = {}
+      
+      ensure_glove_exists()
+      with open(GLOVE_PATH, encoding = 'utf-8') as file:
+        for line in file:
+          parts = line.split()
+          embeddings[parts[0]] = np.array(parts[1:], dtype = np.float32)
+      
+      def review_vector(text):
+        words = re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
+        vectors = [embeddings[word] for word in words if word in embeddings]
+        
+        if len(vectors) == 0:
+          return np.zeros(100)
+        
+        return np.mean(vectors, axis=0)
+      
+      train, remaining = train_test_split(
+        df,
+        test_size = 0.30,
         random_state = TRAINING_SEED,
+        stratify = df['Sentiment'],
       )
-      for _, group in errors.groupby('Sentiment')
-    ])
-    examples.to_csv(WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH, index = False, lineterminator = '\n')
+      validation, test = train_test_split(
+        remaining,
+        test_size = 2 / 3,
+        random_state = TRAINING_SEED,
+        stratify = remaining['Sentiment'],
+      )
+      
+      X_train = np.array([review_vector(text) for text in train['Text']])
+      X_validation = np.array([review_vector(text) for text in validation['Text']])
+      X_test = np.array([review_vector(text) for text in test['Text']])
+      
+      y_train = train['Sentiment']
+      y_test = test['Sentiment']
+      
+      best_f1 = -1
+      for smoothing in [1e-9, 1e-7, 1e-5]:
+        candidate = GaussianNB(var_smoothing = smoothing)
+        candidate.fit(X_train, y_train)
+        score = f1_score(
+          validation['Sentiment'],
+          candidate.predict(X_validation),
+          average = 'macro',
+          zero_division = 0,
+        )
+        if score > best_f1:
+          best_f1 = score
+          model = candidate
+      predictions = model.predict(X_test)
+      
+      majority_label = y_train.mode()[0]
+      baseline = np.full(len(y_test), majority_label)
+      
+      results = []
+      
+      def show_results(name, predicted):
+        scores = {
+          'Model': name,
+          'Accuracy': accuracy_score(y_test, predicted),
+          'Precision_macro': precision_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+          'Recall_macro': recall_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+          'F1_macro': f1_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+        }
+        results.append(scores)
+        print_and_write('\n' + name, file = f)
+        for metric in ['Accuracy', 'Precision_macro', 'Recall_macro', 'F1_macro']:
+          print_and_write(metric + ':', round(scores[metric], 4), file = f)
+      
+      print_and_write('Training reviews:', len(train), file = f)
+      print_and_write('Validation reviews:', len(validation), file = f)
+      print_and_write('Test reviews:', len(test), file = f)
+      print_and_write('Features per review:', X_train.shape[1], file = f)
+      print_and_write('Selected model:', model, file = f)
+      
+      show_results('Majority baseline', baseline)
+      show_results('Word embeddings + Gaussian Naive Bayes', predictions)
+      makedirs(RESULTS_DIR, exist_ok = True)
+      pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False, lineterminator = '\n')
+      pd.DataFrame(classification_report(
+        y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
+      )).T.to_csv(WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH, lineterminator = '\n')
+      pd.DataFrame(
+        confusion_matrix(y_test, predictions, labels = labels), index = labels, columns = labels,
+      ).to_csv(WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH, index_label = 'Actual / Predicted', lineterminator = '\n')
+      
+      ConfusionMatrixDisplay.from_predictions(
+        y_test,
+        predictions,
+        labels = labels,
+        display_labels = labels,
+        cmap = 'Blues',
+      )
+      plt.tight_layout()
+      plt.savefig(WORD_EMBEDDINGS_CONFUSION_MATRIX_IMAGE_PATH, dpi = 200)
+      plt.close()
+      
+      word_counts = Counter(
+        word
+        for text in train['Text']
+        for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
+      )
+      print_and_write('Training vocabulary:', len(word_counts), file = f)
+      print_and_write('Training words found in GloVe:', sum(word in embeddings for word in word_counts), file = f)
+      
+      contributions = {}
+      review_counts = Counter()
+      
+      def class_scores(vectors):
+        probabilities = model.predict_log_proba(vectors)
+        return probabilities - (probabilities.sum(axis = 1, keepdims = True) - probabilities) / 2
+      
+      training_scores = class_scores(X_train)
+      
+      for text, vector, original_score in zip(train['Text'], X_train, training_scores):
+        counts = Counter(
+          word for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
+          if word in embeddings
+        )
+        total = sum(counts.values())
+        words = [word for word in counts if word_counts[word] >= 5 and counts[word] < total]
+        if not words:
+          continue
+        without_words = np.array([
+          (vector * total - embeddings[word] * counts[word]) / (total - counts[word])
+          for word in words
+        ])
+        changes = original_score - class_scores(without_words)
+        for word, change in zip(words, changes):
+          if word not in contributions:
+            contributions[word] = np.zeros(3)
+          contributions[word] += change
+          review_counts[word] += 1
+      
+      word_scores = pd.DataFrame([
+        {
+          'Word': word,
+          'Sentiment': label,
+          'Contribution': contributions[word][i] / review_counts[word],
+          'Count': word_counts[word],
+          'Reviews': review_counts[word],
+        }
+        for word in contributions if review_counts[word] >= 5
+        for i, label in enumerate(model.classes_)
+      ])
+      makedirs(WORD_EMBEDDINGS_LABELED_WORDS_DIR, exist_ok = True)
+      fig, axes = plt.subplots(1, 3, figsize = (16, 6))
+      for ax, label, color in zip(axes, labels, ['tomato', 'steelblue', 'seagreen']):
+        words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]
+        words = words.nlargest(10, 'Contribution').sort_values('Contribution')
+        words.to_csv(f'{WORD_EMBEDDINGS_LABELED_WORDS_DIR}/{label.lower()}_words.csv', index = False, lineterminator = '\n')
+        print_and_write(f'\n{label} words:\n', words.to_string(index = False), file = f)
+        ax.barh(words['Word'], words['Contribution'], color = color)
+        ax.set_title(f'Words associated with {label.lower()}')
+        ax.set_xlabel('Mean change in relative class log score\n(original minus word removed)')
+      fig.suptitle('GloVe + Gaussian NB: training-review word contributions')
+      fig.tight_layout()
+      fig.savefig(WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH, dpi = 200)
+      plt.close(fig)
+      
+      errors = test[['Text', 'Score', 'Sentiment']].copy()
+      errors['prediction'] = predictions
+      errors = errors[errors['Sentiment'] != errors['prediction']]
+      examples = pd.concat([
+        group.sample(
+          n = min(3, len(group)),
+          random_state = TRAINING_SEED,
+        )
+        for _, group in errors.groupby('Sentiment')
+      ])
+      examples.to_csv(WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH, index = False, lineterminator = '\n')
+    
+    print()
+    print('Results saved to:', output)
+    print(f'Word embedding report saved to {WORD_EMBEDDINGS_REPORT_PATH} and other files also saved')
+  else:
+    print('Word embeddings already calculated')
+
+def categorize(review_text):
+  _init_model_vars()
   
-  print()
-  print('Results saved to:', output)
-  print(f'Word embedding report saved to {WORD_EMBEDDINGS_REPORT_PATH} and other files also saved')
-else:
-  print('Word embeddings already calculated')
+  prediction = _model.predict(_transform_data([review_text]))[0]
+  
+  print(f'Prediction: {prediction}')
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(description = __doc__)
+  parser.add_argument('--review', help = 'Classify a review with the saved model')
+  args = parser.parse_args()
+  
+  if args.review is not None:
+    categorize(args.review)
+  else:
+    train()
