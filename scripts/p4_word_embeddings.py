@@ -1,4 +1,4 @@
-'Generates word embeddings and Gaussian Naive Bayes classical model. Run from the repository root with "python -m scripts.p4_word_embeddings" to train, and [TODO] "python -m scripts.p4_word_embeddings --review <your review text in quotes>" to predict.'
+'Generates word embeddings and Gaussian Naive Bayes classical model. Run from the repository root with "python -m scripts.p4_word_embeddings" to train, and "python -m scripts.p4_word_embeddings --review <your review text in quotes>" to predict.'
 
 import argparse
 import re

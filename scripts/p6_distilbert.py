@@ -157,14 +157,14 @@ def categorize(review_text, print_func = print):
     )
   
   prediction = LABELS[probabilities.index(max(probabilities))]
-  prediction_probabilities = zip(LABELS, probabilities)
+  prediction_probabilities = zip(map(label for label in LABELS), probabilities)
   
   if print_func != None:
     print_func(f'Prediction: {prediction}')
     
     print_func(
       'Prediction Probabilities:\n' + 
-      '\n'.join(f'{label}: {probability:.1%}' for label, probability in prediction_probabilities)
+      '\n'.join(f'{label.title()}: {probability:.1%}' for label, probability in prediction_probabilities)
     )
   else:
     return {

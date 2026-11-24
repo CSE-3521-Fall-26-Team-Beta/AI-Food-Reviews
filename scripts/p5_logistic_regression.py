@@ -1,4 +1,4 @@
-'Generates logistic regression classical model. Run from the repository root with "python -m scripts.p5_logistic_regression" to train and test, and [TODO] "python -m scripts.p5_logistic_regression --review <your review text in quotes>" to train and predict.'
+'Generates logistic regression classical model. Run from the repository root with "python -m scripts.p5_logistic_regression" to train and test, and "python -m scripts.p5_logistic_regression --review <your review text in quotes>" to train and predict.'
 
 import argparse
 from os.path import exists
@@ -47,7 +47,7 @@ def categorize(review_text, print_func = print):
   
   prediction = _model.predict(_transform_data([review_text]))[0]
   prediction_values = zip(
-    _model.classes_,
+    (label.lower() for label in _model.classes_),
     _model.decision_function(_transform_data([review_text]))[0]
   )
   
@@ -56,7 +56,7 @@ def categorize(review_text, print_func = print):
     print_func(
       'Prediction Values:\n' +
       '\n'.join(
-        f'{label}: {decision_value:.3}'
+        f'{label.title()}: {decision_value:.3}'
         for label, decision_value
         in prediction_values
       )
