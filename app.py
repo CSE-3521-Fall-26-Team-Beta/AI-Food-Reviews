@@ -1,3 +1,4 @@
+from os import environ
 from pathlib import Path
 from sys import platform
 
@@ -42,12 +43,10 @@ with prediction:
     ('TF-IDF + Logistic Regression', tf_idf_logistic_regression_categorize),
   ]
   
-  if platform != 'linux':
+  # Checks for if not running in streamlit production deployment
+  if not ('HOSTNAME' in environ and environ['HOSTNAME'] == 'streamlit'):
     # DistilBERT crashes Streamlit, so only add it if not in production
     models_list.append(('DistilBERT', distilbert_categorize))
-  else:
-    import os
-    print(os.environ)
   
   for column, model_info in zip(
     st.columns(len(models_list)), models_list
