@@ -40,8 +40,12 @@ from lib.constants import (
 from lib.glove_download import ensure_glove_exists
 from lib.ml_helpers import get_annotated_sample_df, print_and_write
 
+_LABELS = ['Negative', 'Neutral', 'Positive']
+
 _embeddings = None
 _train_dataset = None
+_validation_dataset = None
+_X_train = None
 _X_test = None
 _y_train = None
 _y_test = None
@@ -57,15 +61,13 @@ def _transform_data(text):
   return np.mean(vectors, axis = 0)
 
 def _train():
-  global _embeddings, _train_dataset, _X_test, _y_train, _y_test, _model
+  global _embeddings, _train_dataset, _validation_dataset, _X_train, _X_test, _y_train, _y_test, _model
   
   # Note: this previously used the entire dataset not just the sample
   # Tweaked to only use the sample
   df = get_annotated_sample_df()
   df = df[df['Score'].isin([1, 2, 3, 4, 5])]
   df = df.dropna(subset = ['Text']).copy()
-  
-  labels = ['Negative', 'Neutral', 'Positive']
   
   df['Text'] = df['Text'].str.lower()
   df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex = True)
@@ -90,15 +92,15 @@ def _train():
     random_state = TRAINING_SEED,
     stratify = df['Sentiment'],
   )
-  validation, test = train_test_split(
+  _validation_dataset, test = train_test_split(
     remaining,
     test_size = 2 / 3,
     random_state = TRAINING_SEED,
     stratify = remaining['Sentiment'],
   )
   
-  X_train = np.array([_transform_data(text) for text in _train_dataset['Text']])
-  X_validation = np.array([_transform_data(text) for text in validation['Text']])
+  _X_train = np.array([_transform_data(text) for text in _train_dataset['Text']])
+  X_validation = np.array([_transform_data(text) for text in _validation_dataset['Text']])
   _X_test = np.array([_transform_data(text) for text in test['Text']])
   
   _y_train = _train_dataset['Sentiment']
@@ -107,9 +109,9 @@ def _train():
   best_f1 = -1
   for smoothing in [1e-9, 1e-7, 1e-5]:
     candidate = GaussianNB(var_smoothing = smoothing)
-    candidate.fit(X_train, _y_train)
+    candidate.fit(_X_train, _y_train)
     score = f1_score(
-      validation['Sentiment'],
+      _validation_dataset['Sentiment'],
       candidate.predict(X_validation),
       average = 'macro',
       zero_division = 0,
@@ -143,9 +145,9 @@ def test():
         scores = {
           'Model': name,
           'Accuracy': accuracy_score(_y_test, predicted),
-          'Precision_macro': precision_score(_y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
-          'Recall_macro': recall_score(_y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
-          'F1_macro': f1_score(_y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+          'Precision_macro': precision_score(_y_test, predicted, labels = _LABELS, average = 'macro', zero_division = 0),
+          'Recall_macro': recall_score(_y_test, predicted, labels = _LABELS, average = 'macro', zero_division = 0),
+          'F1_macro': f1_score(_y_test, predicted, labels = _LABELS, average = 'macro', zero_division = 0),
         }
         results.append(scores)
         print_and_write('\n' + name, file = f)
@@ -153,9 +155,9 @@ def test():
           print_and_write(metric + ':', round(scores[metric], 4), file = f)
       
       print_and_write('Training reviews:', len(_train_dataset), file = f)
-      print_and_write('Validation reviews:', len(validation), file = f)
+      print_and_write('Validation reviews:', len(_validation_dataset), file = f)
       print_and_write('Test reviews:', len(test), file = f)
-      print_and_write('Features per review:', X_train.shape[1], file = f)
+      print_and_write('Features per review:', _X_train.shape[1], file = f)
       print_and_write('Selected model:', _model, file = f)
       
       show_results('Majority baseline', baseline)
@@ -163,17 +165,17 @@ def test():
       makedirs(RESULTS_DIR, exist_ok = True)
       pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False, lineterminator = '\n')
       pd.DataFrame(classification_report(
-        _y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
+        _y_test, predictions, labels = _LABELS, output_dict = True, zero_division = 0,
       )).T.to_csv(WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH, lineterminator = '\n')
       pd.DataFrame(
-        confusion_matrix(_y_test, predictions, labels = labels), index = labels, columns = labels,
+        confusion_matrix(_y_test, predictions, labels = _LABELS), index = _LABELS, columns = _LABELS,
       ).to_csv(WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH, index_label = 'Actual / Predicted', lineterminator = '\n')
       
       ConfusionMatrixDisplay.from_predictions(
         _y_test,
         predictions,
-        labels = labels,
-        display_labels = labels,
+        labels = _LABELS,
+        display_labels = _LABELS,
         cmap = 'Blues',
       )
       plt.tight_layout()
@@ -195,9 +197,9 @@ def test():
         probabilities = _model.predict_log_proba(vectors)
         return probabilities - (probabilities.sum(axis = 1, keepdims = True) - probabilities) / 2
       
-      training_scores = class_scores(X_train)
+      training_scores = class_scores(_X_train)
       
-      for text, vector, original_score in zip(_train_dataset['Text'], X_train, training_scores):
+      for text, vector, original_score in zip(_train_dataset['Text'], _X_train, training_scores):
         counts = Counter(
           word for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
           if word in _embeddings
@@ -230,7 +232,7 @@ def test():
       ])
       makedirs(WORD_EMBEDDINGS_LABELED_WORDS_DIR, exist_ok = True)
       fig, axes = plt.subplots(1, 3, figsize = (16, 6))
-      for ax, label, color in zip(axes, labels, ['tomato', 'steelblue', 'seagreen']):
+      for ax, label, color in zip(axes, _LABELS, ['tomato', 'steelblue', 'seagreen']):
         words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]
         words = words.nlargest(10, 'Contribution').sort_values('Contribution')
         words.to_csv(f'{WORD_EMBEDDINGS_LABELED_WORDS_DIR}/{label.lower()}_words.csv', index = False, lineterminator = '\n')
