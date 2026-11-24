@@ -267,7 +267,7 @@ def test():
 def categorize(review_text):
   _init_model_vars()
   
-  prediction = _model.predict(_transform_data([review_text]))[0]
+  prediction = _model.predict([_transform_data(review_text)])[0]
   
   print(f'Prediction: {prediction}')
 
