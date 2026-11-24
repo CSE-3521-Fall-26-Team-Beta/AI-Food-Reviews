@@ -18,6 +18,10 @@ We will preprocess the review text and apply TF-IDF and word embeddings as our f
 
 Finally, we will develop and deploy a Streamlit web application that allows users to enter their own review text and view sentiment predictions from at least two trained models. Through this project, we aim to understand how different feature representations and model architectures influence the accuracy and efficiency of sentiment classification.
 
+# Downloading Input Data
+
+See [`data/downloading_and_sample_gen.md`](data/downloading_and_sample_gen.md).
+
 # Run GloVe + Gaussian Naive Bayes
 
 With the sample CSV and `glove.6B.100d.txt` in `data-bin/`, run from the repo root:
