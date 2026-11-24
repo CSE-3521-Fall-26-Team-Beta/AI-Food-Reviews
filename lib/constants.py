@@ -2,6 +2,9 @@ from os.path import dirname
 
 # Internal constants
 
+# https://stackoverflow.com/questions/4934806/how-can-i-find-scripts-directory
+# Answer: __file__ gives the path to the script file
+# Can be found here: https://docs.python.org/3/reference/datamodel.html#module.__file__
 _script_dir = dirname(__file__)
 
 # File path constants
@@ -9,9 +12,10 @@ _script_dir = dirname(__file__)
 REPO_ROOT_DIR = dirname(_script_dir)
 
 DATA_BIN_DIR = f'{REPO_ROOT_DIR}/data-bin'
-ARCHIVE_ZIP_NAME = 'archive.zip'
+DATASET_ARCHIVE_ZIP_NAME = 'dataset-archive.zip'
 REVIEWS_CSV_NAME = 'Reviews.csv'
 REVIEWS_CSV_PATH = f'{DATA_BIN_DIR}/{REVIEWS_CSV_NAME}'
+GLOVE_ARCHIVE_ZIP_NAME = 'glove-archive.zip'
 GLOVE_NAME = 'glove.6B.100d.txt'
 GLOVE_PATH = f'{DATA_BIN_DIR}/{GLOVE_NAME}'
 
