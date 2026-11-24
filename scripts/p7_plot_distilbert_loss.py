@@ -1,4 +1,4 @@
-"""Recreates the report figure. Run from the repository root with "python -m scripts.plot_distilbert_loss"."""
+"""Recreates the report figure. Run from the repository root with "python -m scripts.p7_plot_distilbert_loss"."""
 
 from pathlib import Path
 
