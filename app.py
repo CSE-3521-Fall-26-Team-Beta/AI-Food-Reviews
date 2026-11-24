@@ -31,7 +31,7 @@ with prediction:
   with st.form('sentiment_prediction'):
     review = st.text_area(
       'Food review',
-      placeholder =  'Enter a food review to compare sentiment predictions.',
+      placeholder = 'Enter a food review to compare sentiment predictions.',
     )
     submitted = st.form_submit_button('Predict Sentiment', type = 'primary')
   
