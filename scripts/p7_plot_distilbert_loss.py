@@ -20,11 +20,23 @@ def main():
     ax.plot(EPOCHS, losses, label = label, color = color, marker = marker, linewidth = 2.3)
     for epoch, loss in zip(EPOCHS, losses):
       offset = -16 if label == 'Validation' and epoch == 1 else 9
-      ax.annotate(f'{loss:.3f}', (epoch, loss), xytext = (0, offset),
-                  textcoords='offset points', ha = 'center', color = color)
+      ax.annotate(
+        f'{loss:.3f}',
+        (epoch, loss),
+        xytext = (0, offset),
+        textcoords = 'offset points',
+        ha = 'center',
+        color = color,
+      )
   
-  ax.set(xticks = EPOCHS, xlim = (0.8, 3.2), ylim = (0.15, 0.5), xlabel = 'Epoch',
-          ylabel = 'Weighted cross-entropy', title = 'DistilBERT + MLP training and validation loss')
+  ax.set(
+    xticks = EPOCHS,
+    xlim = (0.8, 3.2),
+    ylim = (0.15, 0.5),
+    xlabel = 'Epoch',
+    ylabel = 'Weighted cross-entropy',
+    title = 'DistilBERT + MLP training and validation loss',
+  )
   ax.spines[['top', 'right']].set_visible(False)
   ax.grid(axis = 'y', alpha = 0.2)
   ax.legend(loc = 'lower left', frameon = False)
