@@ -18,6 +18,10 @@ from lib.ml_helpers import print_and_write
 MODEL = 'distilbert/distilbert-base-uncased'
 LABELS = ['negative', 'neutral', 'positive']
 
+_device = None
+_tokenizer = None
+_model = None
+
 class _SentimentModel(nn.Module):
   def __init__(self):
     super().__init__()
@@ -48,49 +52,26 @@ def _review_splits():
   )
   return train, val, test
 
+def _tokenize(texts):
+  return _tokenizer(
+    list(texts),
+    padding = True,
+    truncation = True,
+    max_length = 256,
+    return_tensors = 'pt'
+  ).to(_device)
+
+def _init_model_vars():
+  global _device, _tokenizer, _model
+  
+  if _device == None:
+    torch.manual_seed(TRAINING_SEED)
+    _device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    _tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    _model = _SentimentModel().to(_device)
+
 def train():
-  ...
-
-def categorize(review_text):
-  ...
-
-def main():
-  parser = argparse.ArgumentParser(description = __doc__)
-  parser.add_argument('--review', help = 'Classify a review with the saved model')
-  parser.add_argument('--epochs', type = int, default = 3)
-  args = parser.parse_args()
-  if args.epochs < 1:
-    parser.error('--epochs must be positive')
-  
-  torch.manual_seed(TRAINING_SEED)
-  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-  tokenizer = AutoTokenizer.from_pretrained(MODEL)
-  model = _SentimentModel().to(device)
-  
-  def tokenize(texts):
-    return tokenizer(
-      list(texts),
-      padding = True,
-      truncation = True,
-      max_length = 256,
-      return_tensors = 'pt'
-    ).to(device)
-  
-  if args.review is not None:
-    model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = device, weights_only = True))
-    model.eval()
-    with torch.no_grad():
-      probabilities = (
-        model(
-          tokenize([_clean_text(args.review)]),
-        )
-          .softmax(dim = 1)[0]
-          .tolist()
-      )
-    print('Prediction:', LABELS[probabilities.index(max(probabilities))])
-    for label, probability in zip(LABELS, probabilities):
-      print(f'{label}: {probability:.1%}')
-    return
+  _init_model_vars()
   
   train, val, test = _review_splits()
   batches = DataLoader(
@@ -98,18 +79,18 @@ def main():
     batch_size = 16,
     shuffle = True,
   )
-  optimizer = torch.optim.AdamW(model.parameters(), lr = 2e-5)
+  optimizer = torch.optim.AdamW(_model.parameters(), lr = 2e-5)
   # Give neutral reviews twice the weight of negative or positive reviews.
-  criterion = nn.CrossEntropyLoss(weight = torch.tensor([1., 2., 1.], device = device))
-  use_bfloat16 = device.type == 'cuda' and torch.cuda.is_bf16_supported()
+  criterion = nn.CrossEntropyLoss(weight = torch.tensor([1., 2., 1.], device = _device))
+  use_bfloat16 = _device.type == 'cuda' and torch.cuda.is_bf16_supported()
   
   @torch.no_grad()
   def evaluate(reviews):
-    model.eval()
+    _model.eval()
     predictions = []
     for texts in DataLoader(reviews.Text.tolist(), batch_size = 16):
       predictions.extend(
-        model(tokenize(texts))
+        _model(_tokenize(texts))
           .argmax(dim = 1)
           .tolist()
       )
@@ -127,11 +108,11 @@ def main():
   with open(DISTILBERT_REPORT_PATH, 'w', newline = '') as f:
     best_f1 = -1
     for epoch in range(args.epochs):
-      model.train()
+      _model.train()
       for step, (texts, labels) in enumerate(batches, 1):
         optimizer.zero_grad()
-        with torch.autocast(device.type, dtype = torch.bfloat16, enabled = use_bfloat16):
-          loss = criterion(model(tokenize(texts)), labels.to(device))
+        with torch.autocast(_device.type, dtype = torch.bfloat16, enabled = use_bfloat16):
+          loss = criterion(_model(_tokenize(texts)), labels.to(_device))
         loss.backward()
         optimizer.step()
         if step % 250 == 0:
@@ -139,13 +120,43 @@ def main():
       f1 = evaluate(val)['macro avg']['f1-score']
       print_and_write(f'Epoch {epoch + 1} validation macro F1: {f1:.3f}', flush = True, file = f)
       if f1 > best_f1:
-        torch.save(model.state_dict(), DISTILBERT_CHECKPOINT_PATH)
+        torch.save(_model.state_dict(), DISTILBERT_CHECKPOINT_PATH)
         best_f1 = f1
     
-    model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = device, weights_only = True))
+    _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
     metrics = evaluate(test)
     print_and_write(f'Test accuracy: {metrics.pop('accuracy'):.3f}', file = f)
     print_and_write(pd.DataFrame(metrics).T.round(3), file = f)
+
+def categorize(review_text):
+  _init_model_vars()
+  
+  _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
+  _model.eval()
+  with torch.no_grad():
+    probabilities = (
+      _model(
+        _tokenize([_clean_text(review_text)]),
+      )
+        .softmax(dim = 1)[0]
+        .tolist()
+    )
+  print('Prediction:', LABELS[probabilities.index(max(probabilities))])
+  for label, probability in zip(LABELS, probabilities):
+    print(f'{label}: {probability:.1%}')
+
+def main():
+  parser = argparse.ArgumentParser(description = __doc__)
+  parser.add_argument('--review', help = 'Classify a review with the saved model')
+  parser.add_argument('--epochs', type = int, default = 3)
+  args = parser.parse_args()
+  if args.epochs < 1:
+    parser.error('--epochs must be positive')
+  
+  if args.review is not None:
+    categorize(args.review)
+  else:
+    train()
 
 if __name__ == '__main__':
   main()
