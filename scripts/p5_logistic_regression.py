@@ -1,4 +1,4 @@
-'''Run from the repository root with python -m data.logistic_regression.'''
+'Generates logistic regression classical model. Run from the repository root with "python -m scripts.p5_logistic_regression" to train, and [TODO] "python -m scripts.p5_logistic_regression --review <your review text in quotes>" to predict.'
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report

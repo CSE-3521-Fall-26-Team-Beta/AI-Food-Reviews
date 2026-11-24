@@ -1,3 +1,5 @@
+'Checks all downloaded input files and result output files to make sure their hashes match the reference hash file results/verification_hashes.txt. Run from the repository root with "python -m scripts.p7_verify_hashes".'
+
 from lib.constants import VERIFICATION_HASH_PATH
 from lib.generated_file_walker import walk_auto_generated_files_with_hash
 

@@ -1,4 +1,4 @@
-'''Train with python -m data.distilbert, or predict with --review "your review".'''
+'Generates DistilBERT modern model. Run from the repository root with "python -m scripts.p6_distilbert" to train, and "python -m scripts.p6_distilbert --review <your review text in quotes>" to predict.'
 
 import argparse
 import re

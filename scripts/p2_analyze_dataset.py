@@ -1,3 +1,5 @@
+'Analyzes the Review.csv dataset for errors. Run from the repository root with "python -m scripts.p2_analyze_dataset".'
+
 from os.path import exists
 
 import matplotlib.pyplot as plt
