@@ -24,6 +24,7 @@ DATASET_ANALYSIS_PATH = f'{RESULTS_DIR}/dataset_analysis.txt'
 SCORE_DISTRIBUTION_PATH = f'{RESULTS_DIR}/score_distribution.png'
 FEATURE_ENGINEERING_REPORT_PATH = f'{RESULTS_DIR}/feature_engineering_report.txt'
 WORD_EMBEDDINGS_REPORT_PATH = f'{RESULTS_DIR}/word_embedding_report.txt'
+LOGISTIC_REGRESSION_REPORT_PATH = f'{RESULTS_DIR}/logistic_regression_report.txt'
 VERIFICATION_HASH_NAME = f'verification_hashes.txt'
 VERIFICATION_HASH_PATH = f'{RESULTS_DIR}/{VERIFICATION_HASH_NAME}'
 
