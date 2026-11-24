@@ -3,7 +3,7 @@ from os.path import exists
 from .constants import GLOVE_ARCHIVE_ZIP_NAME, GLOVE_NAME, GLOVE_PATH
 from .kagglehub_helpers import kaggle_download_file
 
-def ensure_results_csv_exists():
+def ensure_glove_exists():
   '''
   Returns True if data needed to be downloaded by this function call,
   and returns False if data already present.
