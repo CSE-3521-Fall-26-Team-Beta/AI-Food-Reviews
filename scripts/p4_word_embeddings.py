@@ -125,7 +125,7 @@ def _init_model_vars():
   if _embeddings == None:
     _train()
 
-def test():
+def ensure_word_embeddings_report_exists():
   if not exists(WORD_EMBEDDINGS_REPORT_PATH):
     print('Calculating word embeddings...')
     
@@ -261,7 +261,13 @@ def test():
     print()
     print('Results saved to:', output)
     print(f'Word embedding report saved to {WORD_EMBEDDINGS_REPORT_PATH} and other files also saved')
+    
+    return True
   else:
+    return False
+
+def test():
+  if not ensure_word_embeddings_report_exists():
     print('Word embeddings already calculated')
 
 def categorize(review_text, print_func = print):
