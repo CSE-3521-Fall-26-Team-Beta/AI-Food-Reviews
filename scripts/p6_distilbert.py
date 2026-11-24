@@ -2,7 +2,7 @@
 
 import argparse
 import re
-from pathlib import Path
+from os import makedirs
 
 import pandas as pd
 import torch
@@ -12,10 +12,10 @@ from torch import nn
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, DistilBertModel
 
-from lib.constants import DATA_BIN_DIR, SAMPLE_CSV_PATH, TRAINING_SEED
+from lib.constants import DISTILBERT_CHECKPOINT_PATH, DISTILBERT_REPORT_PATH, MODEL_DIR, SAMPLE_CSV_PATH, TRAINING_SEED
+from lib.ml_helpers import print_and_write
 
 MODEL = 'distilbert/distilbert-base-uncased'
-CHECKPOINT = Path(DATA_BIN_DIR) / 'distilbert.pt'
 LABELS = ['negative', 'neutral', 'positive']
 
 class SentimentModel(nn.Module):
@@ -71,7 +71,7 @@ def main():
     ).to(device)
   
   if args.review is not None:
-    model.load_state_dict(torch.load(CHECKPOINT, map_location = device, weights_only = True))
+    model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = device, weights_only = True))
     model.eval()
     with torch.no_grad():
       probabilities = (
@@ -116,27 +116,30 @@ def main():
       output_dict = True
     )
   
-  best_f1 = -1
-  for epoch in range(args.epochs):
-    model.train()
-    for step, (texts, labels) in enumerate(batches, 1):
-      optimizer.zero_grad()
-      with torch.autocast(device.type, dtype = torch.bfloat16, enabled = use_bfloat16):
-        loss = criterion(model(tokenize(texts)), labels.to(device))
-      loss.backward()
-      optimizer.step()
-      if step % 250 == 0:
-        print(f'Epoch {epoch + 1}, batch {step}/{len(batches)}', flush = True)
-    f1 = evaluate(val)['macro avg']['f1-score']
-    print(f'Epoch {epoch + 1} validation macro F1: {f1:.3f}', flush = True)
-    if f1 > best_f1:
-      torch.save(model.state_dict(), CHECKPOINT)
-      best_f1 = f1
+  makedirs(MODEL_DIR, exist_ok = True)
   
-  model.load_state_dict(torch.load(CHECKPOINT, map_location = device, weights_only = True))
-  metrics = evaluate(test)
-  print(f'Test accuracy: {metrics.pop('accuracy'):.3f}')
-  print(pd.DataFrame(metrics).T.round(3))
+  with open(DISTILBERT_REPORT_PATH, 'w', newline = '') as f:
+    best_f1 = -1
+    for epoch in range(args.epochs):
+      model.train()
+      for step, (texts, labels) in enumerate(batches, 1):
+        optimizer.zero_grad()
+        with torch.autocast(device.type, dtype = torch.bfloat16, enabled = use_bfloat16):
+          loss = criterion(model(tokenize(texts)), labels.to(device))
+        loss.backward()
+        optimizer.step()
+        if step % 250 == 0:
+          print_and_write(f'Epoch {epoch + 1}, batch {step}/{len(batches)}', flush = True, file = f)
+      f1 = evaluate(val)['macro avg']['f1-score']
+      print_and_write(f'Epoch {epoch + 1} validation macro F1: {f1:.3f}', flush = True, file = f)
+      if f1 > best_f1:
+        torch.save(model.state_dict(), DISTILBERT_CHECKPOINT_PATH)
+        best_f1 = f1
+    
+    model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = device, weights_only = True))
+    metrics = evaluate(test)
+    print_and_write(f'Test accuracy: {metrics.pop('accuracy'):.3f}', file = f)
+    print_and_write(pd.DataFrame(metrics).T.round(3), file = f)
 
 if __name__ == '__main__':
   main()

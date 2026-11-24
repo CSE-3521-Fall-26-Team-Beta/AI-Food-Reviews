@@ -16,6 +16,6 @@ def get_annotated_sample_df() -> DataFrame:
   
   return df
 
-def print_and_write(*objects, sep = None, end = None, file = None):
-  print(*objects, sep = sep, end = end, file = file)
-  print(*objects, sep = sep, end = end)
+def print_and_write(*objects, sep = None, end = None, file = None, flush = None):
+  print(*objects, sep = sep, end = end, file = file, flush = flush)
+  print(*objects, sep = sep, end = end, flush = flush)

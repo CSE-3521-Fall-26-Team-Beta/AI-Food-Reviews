@@ -11,7 +11,7 @@ def ensure_streamlit_opted_out():
   config_path = f'{environ['USERPROFILE']}/.streamlit/config.toml'
   
   if not exists(config_path):
-    with open(config_path, 'w') as f:
+    with open(config_path, 'w', newline = '') as f:
       f.write(OPT_OUT_FULL_CONTENTS)
   else:
     with open(config_path, 'r') as f:
