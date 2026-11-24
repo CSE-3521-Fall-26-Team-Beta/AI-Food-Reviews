@@ -131,13 +131,13 @@ print('Selected model:', model)
 
 show_results('Majority baseline', baseline)
 show_results('Word embeddings + Gaussian Naive Bayes', predictions)
-pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False)
+pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False, lineterminator = '\n')
 pd.DataFrame(classification_report(
   y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
-)).T.to_csv(WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH)
+)).T.to_csv(WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH, lineterminator = '\n')
 pd.DataFrame(
   confusion_matrix(y_test, predictions, labels = labels), index = labels, columns = labels,
-).to_csv(WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH, index_label = 'Actual / Predicted')
+).to_csv(WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH, index_label = 'Actual / Predicted', lineterminator = '\n')
 
 ConfusionMatrixDisplay.from_predictions(
   y_test,
@@ -202,7 +202,7 @@ fig, axes = plt.subplots(1, 3, figsize = (16, 6))
 for ax, label, color in zip(axes, labels, ['tomato', 'steelblue', 'seagreen']):
   words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]
   words = words.nlargest(10, 'Contribution').sort_values('Contribution')
-  words.to_csv(f'{WORD_EMBEDDINGS_LABELED_WORDS_DIR}/{label.lower()}_words.csv', index = False)
+  words.to_csv(f'{WORD_EMBEDDINGS_LABELED_WORDS_DIR}/{label.lower()}_words.csv', index = False, lineterminator = '\n')
   print(f'\n{label} words:\n', words.to_string(index = False))
   ax.barh(words['Word'], words['Contribution'], color = color)
   ax.set_title(f'Words associated with {label.lower()}')
@@ -222,5 +222,5 @@ examples = pd.concat([
   )
   for _, group in errors.groupby('Sentiment')
 ])
-examples.to_csv(WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH, index = False)
+examples.to_csv(WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH, index = False, lineterminator = '\n')
 print('Results saved to:', output)

@@ -16,7 +16,7 @@ def _generate_group_sample():
   df = read_csv(REVIEWS_CSV_PATH)
   sample = df.sample(n = TRAINING_SAMPLE_SIZE, random_state = TRAINING_SEED)
   
-  sample.to_csv(SAMPLE_CSV_PATH)
+  sample.to_csv(SAMPLE_CSV_PATH, lineterminator = '\n')
   
   print(f'Saved {len(sample)} rows to {SAMPLE_CSV_PATH}')
   print(sample[['Score', 'Text']].head(3))

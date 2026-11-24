@@ -1,4 +1,4 @@
-Text,Score,label,prediction
+Text,Score,Sentiment,prediction
 "taste and texture were diapointing. the bars remind me of those raw bars you can get at starbucks.... just very blan and boring. just tastes like a bunch of seeds stuck. the chocolate one is my favorite (not the goji berry), but even the chocolate is not worth getting.",2,Negative,Positive
 they are great ice pops but extremely overpriced. you can get these at walmart for like $3. you can also get them at your local grocers for a reasonable amount of money.,1,Negative,Positive
 "i bought this when i could not find the manishevitz brand (which i think is the tastiest). i made it as per package directions-it fried well and stayed together, but it was dry and tasteless in a pita, even with hoummous on top. beach sand is the closest description used in these reviews and that is how i would describe the taste and texture.",1,Negative,Neutral
