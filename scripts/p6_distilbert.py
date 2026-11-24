@@ -71,6 +71,12 @@ def _init_model_vars():
     _tokenizer = AutoTokenizer.from_pretrained(MODEL)
     _model = _SentimentModel().to(_device)
 
+def _init_model_vars_with_saved_weights():
+  if _device == None:
+    _init_model_vars()
+    _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
+    _model.eval()
+
 def train(epochs = 3):
   if not exists(DISTILBERT_REPORT_PATH):
     print('Training DistilBERT...')
@@ -136,11 +142,9 @@ def train(epochs = 3):
   else:
     print('DistilBERT already trained')
 
-def categorize(review_text):
-  _init_model_vars()
+def categorize(review_text, print_func = print):
+  _init_model_vars_with_saved_weights()
   
-  _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
-  _model.eval()
   with torch.no_grad():
     probabilities = (
       _model(
@@ -149,9 +153,19 @@ def categorize(review_text):
         .softmax(dim = 1)[0]
         .tolist()
     )
-  print('Prediction:', LABELS[probabilities.index(max(probabilities))])
-  for label, probability in zip(LABELS, probabilities):
-    print(f'{label}: {probability:.1%}')
+  
+  prediction = LABELS[probabilities.index(max(probabilities))]
+  
+  if print_func != None:
+    print_func('Prediction:', prediction)
+    
+    for label, probability in zip(LABELS, probabilities):
+      print_func(f'{label}: {probability:.1%}')
+  else:
+    return {
+      'prediction': prediction,
+      'probabilities': dict(zip(LABELS, probabilities)),
+    }
 
 def main():
   parser = argparse.ArgumentParser(description = __doc__)

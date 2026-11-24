@@ -264,12 +264,15 @@ def test():
   else:
     print('Word embeddings already calculated')
 
-def categorize(review_text):
+def categorize(review_text, print_func = print):
   _init_model_vars()
   
   prediction = _model.predict([_transform_data(review_text)])[0]
   
-  print(f'Prediction: {prediction}')
+  if print_func != None:
+    print_func(f'Prediction: {prediction}')
+  else:
+    return prediction
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description = __doc__)

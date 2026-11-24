@@ -35,11 +35,11 @@ with prediction:
       st.subheader(model_name)
       match model_name:
         case 'Word Embeddings + Gaussian Naive Bayes':
-          st.info(word_embeddings_gaussian_naive_bayes_categorize(review))
+          word_embeddings_gaussian_naive_bayes_categorize(review, print_func = st.info)
         case 'TF-IDF + Logistic Regression':
-          st.info(tf_idf_logistic_regression_categorize(review))
+          tf_idf_logistic_regression_categorize(review, print_func = st.info)
         case 'DistilBERT':
-          st.info(distilbert_categorize(review))
+          distilbert_categorize(review, print_func = st.info)
 
 with comparison:
   metrics_file = results / 'word_embeddings' / 'metrics.csv'
