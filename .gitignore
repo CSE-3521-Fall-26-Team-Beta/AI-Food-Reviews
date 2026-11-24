@@ -4,9 +4,9 @@ __pycache__
 
 # Absolute paths
 /data-bin/
+/models/distilbert.pt
 /results/dataset_analysis.txt
 /results/distilbert_report.txt
-/results/distilbert.pt
 /results/feature_engineering_report.txt
 /results/logistic_regression_report.txt
 /results/score_distribution.png
