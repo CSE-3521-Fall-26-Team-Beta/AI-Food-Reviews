@@ -12,7 +12,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
+from sklearn.pipeline import make_pipeline
 from sklearn.metrics import (
   accuracy_score,
   precision_score,
@@ -108,8 +110,13 @@ def _train():
   _y_test = _test_dataset['Sentiment']
   
   best_f1 = -1
-  for smoothing in [1e-9, 1e-7, 1e-5]:
-    candidate = GaussianNB(var_smoothing = smoothing)
+  counts = _y_train.value_counts().sort_index().to_numpy()
+  for prior_power in [1, 0.5, 0]:
+    priors = counts ** prior_power
+    candidate = make_pipeline(
+      LinearDiscriminantAnalysis(),
+      GaussianNB(priors = priors / priors.sum()),
+    )
     candidate.fit(_X_train, _y_train)
     score = f1_score(
       _validation_dataset['Sentiment'],
@@ -125,8 +132,8 @@ def _init_model_vars():
   if _embeddings == None:
     _train()
 
-def ensure_word_embeddings_report_exists():
-  if not exists(WORD_EMBEDDINGS_REPORT_PATH):
+def ensure_word_embeddings_report_exists(force = False):
+  if force or not exists(WORD_EMBEDDINGS_REPORT_PATH):
     print('Calculating word embeddings...')
     
     with open(WORD_EMBEDDINGS_REPORT_PATH, 'w', newline = '') as f:
@@ -267,16 +274,22 @@ def ensure_word_embeddings_report_exists():
     return False
 
 def test():
-  if not ensure_word_embeddings_report_exists():
-    print('Word embeddings already calculated')
+  ensure_word_embeddings_report_exists(force = True)
 
 def categorize(review_text, print_func = print):
   _init_model_vars()
-  
-  prediction = _model.predict([_transform_data(review_text)])[0].lower()
+  text = re.sub(r'<[^>]+>', ' ', review_text.lower())
+  vector = _transform_data(text)
+  if not np.any(vector):
+    if print_func is not None:
+      print_func('Enter a review with words recognized by the GloVe model.')
+      return
+    return {'prediction': None, 'probabilities': {}}
+
+  prediction = _model.predict([vector])[0].lower()
   prediction_probabilities = zip(
     (label.lower() for label in _model.classes_),
-    _model.predict_proba([_transform_data(review_text)])[0]
+    _model.predict_proba([vector])[0]
   )
   
   if print_func != None:

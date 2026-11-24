@@ -56,10 +56,11 @@ with prediction:
     with column:
       st.subheader(model_name)
       
-      categorize(
-        review,
-        print_func = print_to_streamlit,
-      )
+      if submitted and review.strip():
+        categorize(
+          review,
+          print_func = print_to_streamlit,
+        )
 
 with comparison:
   ensure_word_embeddings_report_exists()
