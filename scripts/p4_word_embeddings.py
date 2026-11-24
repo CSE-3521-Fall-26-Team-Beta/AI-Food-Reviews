@@ -132,7 +132,7 @@ def test():
       output = WORD_EMBEDDINGS_DIR
       Path(output).mkdir(parents = True, exist_ok = True)
       
-      _train()
+      _init_model_vars()
       
       predictions = _model.predict(_X_test)
       
