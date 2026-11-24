@@ -18,7 +18,7 @@ from lib.ml_helpers import print_and_write
 MODEL = 'distilbert/distilbert-base-uncased'
 LABELS = ['negative', 'neutral', 'positive']
 
-class SentimentModel(nn.Module):
+class _SentimentModel(nn.Module):
   def __init__(self):
     super().__init__()
     self.encoder = DistilBertModel.from_pretrained(MODEL)
@@ -30,11 +30,14 @@ class SentimentModel(nn.Module):
     cls = self.encoder(**tokens).last_hidden_state[:, 0]
     return self.mlp(cls)
 
-def review_splits():
+def _clean_text(text):
+  return ' '.join(re.sub(r'<[^>]+>', ' ', text.lower()).split())
+
+def _review_splits():
   reviews = pd.read_csv(SAMPLE_CSV_PATH, usecols = ['Text', 'Score'])
   reviews['label'] = reviews['Score'].map({1: 0, 2: 0, 3: 1, 4: 2, 5: 2})
   reviews = reviews.dropna().copy()
-  reviews['Text'] = reviews['Text'].map(clean_text)
+  reviews['Text'] = reviews['Text'].map(_clean_text)
   consistent = reviews.groupby('Text')['label'].transform('nunique') == 1
   reviews = reviews[consistent & reviews['Text'].ne('')].drop_duplicates('Text')
   train, rest = train_test_split(
@@ -45,8 +48,11 @@ def review_splits():
   )
   return train, val, test
 
-def clean_text(text):
-  return ' '.join(re.sub(r'<[^>]+>', ' ', text.lower()).split())
+def train():
+  ...
+
+def categorize(review_text):
+  ...
 
 def main():
   parser = argparse.ArgumentParser(description = __doc__)
@@ -59,7 +65,7 @@ def main():
   torch.manual_seed(TRAINING_SEED)
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
   tokenizer = AutoTokenizer.from_pretrained(MODEL)
-  model = SentimentModel().to(device)
+  model = _SentimentModel().to(device)
   
   def tokenize(texts):
     return tokenizer(
@@ -76,7 +82,7 @@ def main():
     with torch.no_grad():
       probabilities = (
         model(
-          tokenize([clean_text(args.review)]),
+          tokenize([_clean_text(args.review)]),
         )
           .softmax(dim = 1)[0]
           .tolist()
@@ -86,7 +92,7 @@ def main():
       print(f'{label}: {probability:.1%}')
     return
   
-  train, val, test = review_splits()
+  train, val, test = _review_splits()
   batches = DataLoader(
     list(zip(train.Text, train.label.astype(int))),
     batch_size = 16,
