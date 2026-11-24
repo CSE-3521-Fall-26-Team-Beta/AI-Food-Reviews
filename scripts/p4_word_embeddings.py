@@ -274,18 +274,21 @@ def ensure_word_embeddings_report_exists(force = False):
     return False
 
 def test():
-  ensure_word_embeddings_report_exists(force = True)
+  ensure_word_embeddings_report_exists()
 
 def categorize(review_text, print_func = print):
   _init_model_vars()
+  
   text = re.sub(r'<[^>]+>', ' ', review_text.lower())
+  
   vector = _transform_data(text)
+  
   if not np.any(vector):
     if print_func is not None:
       print_func('Enter a review with words recognized by the GloVe model.')
       return
     return {'prediction': None, 'probabilities': {}}
-
+  
   prediction = _model.predict([vector])[0].lower()
   prediction_probabilities = zip(
     (label.lower() for label in _model.classes_),
