@@ -47,7 +47,7 @@ with prediction:
     models_list.append(('DistilBERT', distilbert_categorize))
   
   for column, model_info in zip(
-    st.columns(3), models_list
+    st.columns(len(models_list)), models_list
   ):
     model_name, categorize = model_info
     
