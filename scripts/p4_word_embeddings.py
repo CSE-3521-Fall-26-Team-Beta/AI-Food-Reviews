@@ -57,12 +57,11 @@ def _init_model_vars():
     _model = LogisticRegression(class_weight = 'balanced', max_iter = 300)
     _model.fit(_X_train, _train_df['Sentiment'])
 
-def train():
+def test():
   if not exists(WORD_EMBEDDINGS_REPORT_PATH):
     print('Calculating word embeddings...')
     
     with open(WORD_EMBEDDINGS_REPORT_PATH, 'w', newline = '') as f:
-      root = Path(__file__).resolve().parents[1]
       output = WORD_EMBEDDINGS_DIR
       Path(output).mkdir(parents = True, exist_ok = True)
       
@@ -277,4 +276,4 @@ if __name__ == '__main__':
   if args.review is not None:
     categorize(args.review)
   else:
-    train()
+    test()

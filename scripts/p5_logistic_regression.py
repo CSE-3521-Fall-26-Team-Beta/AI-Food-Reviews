@@ -27,7 +27,7 @@ def _init_model_vars():
     _model = LogisticRegression(class_weight = 'balanced', max_iter = 300)
     _model.fit(_X_train, _train_df['Sentiment'])
 
-def train():
+def test():
   if not exists(LOGISTIC_REGRESSION_REPORT_PATH):
     print('Calculating logistic regression...')
     
@@ -57,4 +57,4 @@ if __name__ == '__main__':
   if args.review is not None:
     categorize(args.review)
   else:
-    train()
+    test()
