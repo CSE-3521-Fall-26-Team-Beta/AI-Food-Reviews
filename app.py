@@ -45,6 +45,9 @@ with prediction:
   if platform != 'linux':
     # DistilBERT crashes Streamlit, so only add it if not in production
     models_list.append(('DistilBERT', distilbert_categorize))
+  else:
+    import os
+    print(os.environ)
   
   for column, model_info in zip(
     st.columns(len(models_list)), models_list
