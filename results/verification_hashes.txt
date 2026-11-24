@@ -3,6 +3,7 @@ data-bin/glove-archive.zip: mFsaNVdafkq4XfBGd+BlamOf0FRrd8AkaazndjuOSdY=
 data-bin/glove.6B.100d.txt: ld3k39YnqyZgjTPnbRGV7AWXNL0pCJ6lLK2wjQfGRUQ=
 data-bin/group_sample_seed43.csv: vpaQyNA+GgpdQEP7bcaF+fIXTabfbtI0pRc3FgjMzfQ=
 data-bin/Reviews.csv: qINIwg7T+F1kfo+6rApzCrLwn5Xl0fS88fnjZQ72JNc=
+models/distilbert.pt: 7OgW+++pXlpIIXKos7+QoLvYC0uic1HRUd57e9xw8Mg=
 results/dataset_analysis.txt: 7OeoImwwqoJHB/ciVZnjsiqSW4LAB+4+5RmKOerxYbU=
 results/distilbert_loss_curves.png: k8hdNrhimLwnaBbwAPixH51E9gtMcJ+BVShYyQ1LiTw=
 results/distilbert_report.txt: boyh5JtaN9SdwpCJhvEz/Y2cJk8eZql1Z0Ap7btdwHg=

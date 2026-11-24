@@ -6,9 +6,9 @@ from .constants import REPO_ROOT_DIR, RESULTS_DIR, VERIFICATION_HASH_NAME
 
 def walk_auto_generated_files():
   for dir_path, dir_names, file_names in walk(REPO_ROOT_DIR):
-    # Trim root dir walk to only contiain data-bin and results directories
+    # Trim root dir walk to only contiain data-bin, models, and results directories
     if dir_path == REPO_ROOT_DIR:
-      dir_names[:] = ['data-bin', 'results']
+      dir_names[:] = ['data-bin', 'models', 'results']
     else:
       # Trim results dir walk to not contain documentation directory and not contain verification hash file
       if dir_path.replace('\\', '/') == RESULTS_DIR.replace('\\', '/'):
