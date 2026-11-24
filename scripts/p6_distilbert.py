@@ -3,6 +3,7 @@
 import argparse
 import re
 from os import makedirs
+from os.path import exists
 
 import pandas as pd
 import torch
@@ -71,62 +72,69 @@ def _init_model_vars():
     _model = _SentimentModel().to(_device)
 
 def train(epochs = 3):
-  _init_model_vars()
-  
-  train, val, test = _review_splits()
-  batches = DataLoader(
-    list(zip(train.Text, train.label.astype(int))),
-    batch_size = 16,
-    shuffle = True,
-  )
-  optimizer = torch.optim.AdamW(_model.parameters(), lr = 2e-5)
-  # Give neutral reviews twice the weight of negative or positive reviews.
-  criterion = nn.CrossEntropyLoss(weight = torch.tensor([1., 2., 1.], device = _device))
-  use_bfloat16 = _device.type == 'cuda' and torch.cuda.is_bf16_supported()
-  
-  @torch.no_grad()
-  def evaluate(reviews):
-    _model.eval()
-    predictions = []
-    for texts in DataLoader(reviews.Text.tolist(), batch_size = 16):
-      predictions.extend(
-        _model(_tokenize(texts))
-          .argmax(dim = 1)
-          .tolist()
-      )
-    return classification_report(
-      reviews.label,
-      predictions,
-      labels = [0, 1, 2],
-      target_names = LABELS,
-      zero_division = 0,
-      output_dict = True
-    )
-  
-  makedirs(MODEL_DIR, exist_ok = True)
-  
-  with open(DISTILBERT_REPORT_PATH, 'w', newline = '') as f:
-    best_f1 = -1
-    for epoch in range(epochs):
-      _model.train()
-      for step, (texts, labels) in enumerate(batches, 1):
-        optimizer.zero_grad()
-        with torch.autocast(_device.type, dtype = torch.bfloat16, enabled = use_bfloat16):
-          loss = criterion(_model(_tokenize(texts)), labels.to(_device))
-        loss.backward()
-        optimizer.step()
-        if step % 250 == 0:
-          print_and_write(f'Epoch {epoch + 1}, batch {step}/{len(batches)}', flush = True, file = f)
-      f1 = evaluate(val)['macro avg']['f1-score']
-      print_and_write(f'Epoch {epoch + 1} validation macro F1: {f1:.3f}', flush = True, file = f)
-      if f1 > best_f1:
-        torch.save(_model.state_dict(), DISTILBERT_CHECKPOINT_PATH)
-        best_f1 = f1
+  if not exists(DISTILBERT_REPORT_PATH):
+    print('Training DistilBERT...')
     
-    _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
-    metrics = evaluate(test)
-    print_and_write(f'Test accuracy: {metrics.pop('accuracy'):.3f}', file = f)
-    print_and_write(pd.DataFrame(metrics).T.round(3), file = f)
+    _init_model_vars()
+    
+    train, val, test = _review_splits()
+    batches = DataLoader(
+      list(zip(train.Text, train.label.astype(int))),
+      batch_size = 16,
+      shuffle = True,
+    )
+    optimizer = torch.optim.AdamW(_model.parameters(), lr = 2e-5)
+    # Give neutral reviews twice the weight of negative or positive reviews.
+    criterion = nn.CrossEntropyLoss(weight = torch.tensor([1., 2., 1.], device = _device))
+    use_bfloat16 = _device.type == 'cuda' and torch.cuda.is_bf16_supported()
+    
+    @torch.no_grad()
+    def evaluate(reviews):
+      _model.eval()
+      predictions = []
+      for texts in DataLoader(reviews.Text.tolist(), batch_size = 16):
+        predictions.extend(
+          _model(_tokenize(texts))
+            .argmax(dim = 1)
+            .tolist()
+        )
+      return classification_report(
+        reviews.label,
+        predictions,
+        labels = [0, 1, 2],
+        target_names = LABELS,
+        zero_division = 0,
+        output_dict = True
+      )
+    
+    makedirs(MODEL_DIR, exist_ok = True)
+    
+    with open(DISTILBERT_REPORT_PATH, 'w', newline = '') as f:
+      best_f1 = -1
+      for epoch in range(epochs):
+        _model.train()
+        for step, (texts, labels) in enumerate(batches, 1):
+          optimizer.zero_grad()
+          with torch.autocast(_device.type, dtype = torch.bfloat16, enabled = use_bfloat16):
+            loss = criterion(_model(_tokenize(texts)), labels.to(_device))
+          loss.backward()
+          optimizer.step()
+          if step % 250 == 0:
+            print_and_write(f'Epoch {epoch + 1}, batch {step}/{len(batches)}', flush = True, file = f)
+        f1 = evaluate(val)['macro avg']['f1-score']
+        print_and_write(f'Epoch {epoch + 1} validation macro F1: {f1:.3f}', flush = True, file = f)
+        if f1 > best_f1:
+          torch.save(_model.state_dict(), DISTILBERT_CHECKPOINT_PATH)
+          best_f1 = f1
+      
+      _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
+      metrics = evaluate(test)
+      print_and_write(f'Test accuracy: {metrics.pop('accuracy'):.3f}', file = f)
+      print_and_write(pd.DataFrame(metrics).T.round(3), file = f)
+    
+    print(f'DistilBERT training report saved to {DISTILBERT_REPORT_PATH}')
+  else:
+    print('DistilBERT already trained')
 
 def categorize(review_text):
   _init_model_vars()

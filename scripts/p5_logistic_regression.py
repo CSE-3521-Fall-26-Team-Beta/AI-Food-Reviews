@@ -10,6 +10,18 @@ from lib.ml_helpers import print_and_write
 from scripts.p3_feature_engineering import perform_feature_engineering
 
 if __name__ == '__main__':
+  parser = argparse.ArgumentParser(description = __doc__)
+  parser.add_argument('--review', help = 'Classify a review with the saved model')
+  parser.add_argument('--epochs', type = int, default = 3)
+  args = parser.parse_args()
+  if args.epochs < 1:
+    parser.error('--epochs must be positive')
+  
+  if args.review is not None:
+    categorize(args.review)
+  else:
+    train(args.epochs)
+  
   if not exists(LOGISTIC_REGRESSION_REPORT_PATH):
     print('Calculating logistic regression...')
     
