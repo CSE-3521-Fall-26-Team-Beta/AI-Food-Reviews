@@ -157,18 +157,19 @@ def categorize(review_text, print_func = print):
     )
   
   prediction = LABELS[probabilities.index(max(probabilities))]
+  prediction_probabilities = zip(LABELS, probabilities)
   
   if print_func != None:
     print_func(f'Prediction: {prediction}')
     
     print_func(
-      'Prediction probabilities:\n' + 
-      '\n'.join(f'{label}: {probability:.1%}' for label, probability in zip(LABELS, probabilities))
+      'Prediction Probabilities:\n' + 
+      '\n'.join(f'{label}: {probability:.1%}' for label, probability in prediction_probabilities)
     )
   else:
     return {
       'prediction': prediction,
-      'probabilities': dict(zip(LABELS, probabilities)),
+      'probabilities': dict(prediction_probabilities),
     }
 
 def main():

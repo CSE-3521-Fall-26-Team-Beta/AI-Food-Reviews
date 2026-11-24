@@ -46,13 +46,26 @@ def categorize(review_text, print_func = print):
   _init_model_vars()
   
   prediction = _model.predict(_transform_data([review_text]))[0]
-  raw_prediction = _model.decision_function(_transform_data([review_text]))[0]
+  prediction_values = zip(
+    _model.classes_,
+    _model.decision_function(_transform_data([review_text]))[0]
+  )
   
   if print_func != None:
     print_func(f'Prediction: {prediction}')
-    print_func(f'Raw Prediction: {raw_prediction}')
+    print_func(
+      'Prediction Values:\n' +
+      '\n'.join(
+        f'{label}: {decision_value:.3}'
+        for label, decision_value
+        in prediction_values
+      )
+    )
   else:
-    return prediction
+    return {
+      'prediction': prediction,
+      'probabilities': dict(prediction_values),
+    }
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description = __doc__)
