@@ -5,7 +5,7 @@ from sys import platform
 import pandas as pd
 import streamlit as st
 
-from lib.constants import WORD_EMBEDDINGS_METRICS_PATH
+from lib.constants import DISTILBERT_LOSS_CURVES_PATH, WORD_EMBEDDINGS_METRICS_PATH
 from scripts.p4_word_embeddings import categorize as word_embeddings_gaussian_naive_bayes_categorize, ensure_word_embeddings_report_exists
 from scripts.p5_logistic_regression import categorize as tf_idf_logistic_regression_categorize
 from scripts.p6_distilbert import categorize as distilbert_categorize
@@ -67,7 +67,7 @@ with comparison:
   st.dataframe(pd.read_csv(WORD_EMBEDDINGS_METRICS_PATH), hide_index = True)
 
 with analysis:
-  loss_image = results / 'distilbert_loss_curves.png'
+  loss_image = Path(DISTILBERT_LOSS_CURVES_PATH)
   if loss_image.is_file():
     st.image(str(loss_image), caption = 'DistilBERT training and validation loss')
   else:
