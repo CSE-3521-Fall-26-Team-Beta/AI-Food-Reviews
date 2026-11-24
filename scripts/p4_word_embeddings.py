@@ -40,22 +40,87 @@ from lib.constants import (
 from lib.glove_download import ensure_glove_exists
 from lib.ml_helpers import get_annotated_sample_df, print_and_write
 
+_embeddings = None
+_train_dataset = None
 _X_test = None
-_X_train = None
-_test_df = None
-_train_df = None
-_transform_data = None
+_y_train = None
+_y_test = None
 _model = None
 
-def _init_model_vars():
-  global _X_test, _X_train, _test_df, _train_df, _transform_data, _model
+def _transform_data(text):
+  words = re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
+  vectors = [_embeddings[word] for word in words if word in _embeddings]
   
-  if _X_test == None:
-    _X_test, _X_train, _test_df, _train_df, _transform_data = perform_feature_engineering()
-    
-    # Give each sentiment equal weight even though most reviews are positive.
-    _model = LogisticRegression(class_weight = 'balanced', max_iter = 300)
-    _model.fit(_X_train, _train_df['Sentiment'])
+  if len(vectors) == 0:
+    return np.zeros(100)
+  
+  return np.mean(vectors, axis = 0)
+
+def _train():
+  global _embeddings, _train_dataset, _X_test, _y_train, _y_test, _model
+  
+  # Note: this previously used the entire dataset not just the sample
+  # Tweaked to only use the sample
+  df = get_annotated_sample_df()
+  df = df[df['Score'].isin([1, 2, 3, 4, 5])]
+  df = df.dropna(subset = ['Text']).copy()
+  
+  labels = ['Negative', 'Neutral', 'Positive']
+  
+  df['Text'] = df['Text'].str.lower()
+  df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex = True)
+  df['Text'] = df['Text'].str.replace(r'\s+', ' ', regex = True).str.strip()
+  df = df[df['Text'] != '']
+  
+  label_counts = df.groupby('Text')['Sentiment'].nunique()
+  df = df[df['Text'].isin(label_counts[label_counts == 1].index)]
+  df = df.drop_duplicates('Text')
+  
+  _embeddings = {}
+  
+  ensure_glove_exists()
+  with open(GLOVE_PATH, encoding = 'utf-8') as file:
+    for line in file:
+      parts = line.split()
+      _embeddings[parts[0]] = np.array(parts[1:], dtype = np.float32)
+  
+  _train_dataset, remaining = train_test_split(
+    df,
+    test_size = 0.30,
+    random_state = TRAINING_SEED,
+    stratify = df['Sentiment'],
+  )
+  validation, test = train_test_split(
+    remaining,
+    test_size = 2 / 3,
+    random_state = TRAINING_SEED,
+    stratify = remaining['Sentiment'],
+  )
+  
+  X_train = np.array([_transform_data(text) for text in _train_dataset['Text']])
+  X_validation = np.array([_transform_data(text) for text in validation['Text']])
+  _X_test = np.array([_transform_data(text) for text in test['Text']])
+  
+  _y_train = _train_dataset['Sentiment']
+  _y_test = test['Sentiment']
+  
+  best_f1 = -1
+  for smoothing in [1e-9, 1e-7, 1e-5]:
+    candidate = GaussianNB(var_smoothing = smoothing)
+    candidate.fit(X_train, _y_train)
+    score = f1_score(
+      validation['Sentiment'],
+      candidate.predict(X_validation),
+      average = 'macro',
+      zero_division = 0,
+    )
+    if score > best_f1:
+      best_f1 = score
+      _model = candidate
+
+def _init_model_vars():
+  if _embeddings == None:
+    _train()
 
 def test():
   if not exists(WORD_EMBEDDINGS_REPORT_PATH):
@@ -65,112 +130,47 @@ def test():
       output = WORD_EMBEDDINGS_DIR
       Path(output).mkdir(parents = True, exist_ok = True)
       
-      # Note: this previously used the entire dataset not just the sample
-      # Tweaked to only use the sample
-      df = get_annotated_sample_df()
-      df = df[df['Score'].isin([1, 2, 3, 4, 5])]
-      df = df.dropna(subset = ['Text']).copy()
+      _train()
       
-      labels = ['Negative', 'Neutral', 'Positive']
+      predictions = _model.predict(_X_test)
       
-      df['Text'] = df['Text'].str.lower()
-      df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex = True)
-      df['Text'] = df['Text'].str.replace(r'\s+', ' ', regex = True).str.strip()
-      df = df[df['Text'] != '']
-      
-      label_counts = df.groupby('Text')['Sentiment'].nunique()
-      df = df[df['Text'].isin(label_counts[label_counts == 1].index)]
-      df = df.drop_duplicates('Text')
-      
-      embeddings = {}
-      
-      ensure_glove_exists()
-      with open(GLOVE_PATH, encoding = 'utf-8') as file:
-        for line in file:
-          parts = line.split()
-          embeddings[parts[0]] = np.array(parts[1:], dtype = np.float32)
-      
-      def review_vector(text):
-        words = re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
-        vectors = [embeddings[word] for word in words if word in embeddings]
-        
-        if len(vectors) == 0:
-          return np.zeros(100)
-        
-        return np.mean(vectors, axis=0)
-      
-      train, remaining = train_test_split(
-        df,
-        test_size = 0.30,
-        random_state = TRAINING_SEED,
-        stratify = df['Sentiment'],
-      )
-      validation, test = train_test_split(
-        remaining,
-        test_size = 2 / 3,
-        random_state = TRAINING_SEED,
-        stratify = remaining['Sentiment'],
-      )
-      
-      X_train = np.array([review_vector(text) for text in train['Text']])
-      X_validation = np.array([review_vector(text) for text in validation['Text']])
-      X_test = np.array([review_vector(text) for text in test['Text']])
-      
-      y_train = train['Sentiment']
-      y_test = test['Sentiment']
-      
-      best_f1 = -1
-      for smoothing in [1e-9, 1e-7, 1e-5]:
-        candidate = GaussianNB(var_smoothing = smoothing)
-        candidate.fit(X_train, y_train)
-        score = f1_score(
-          validation['Sentiment'],
-          candidate.predict(X_validation),
-          average = 'macro',
-          zero_division = 0,
-        )
-        if score > best_f1:
-          best_f1 = score
-          model = candidate
-      predictions = model.predict(X_test)
-      
-      majority_label = y_train.mode()[0]
-      baseline = np.full(len(y_test), majority_label)
+      majority_label = _y_train.mode()[0]
+      baseline = np.full(len(_y_test), majority_label)
       
       results = []
       
       def show_results(name, predicted):
         scores = {
           'Model': name,
-          'Accuracy': accuracy_score(y_test, predicted),
-          'Precision_macro': precision_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
-          'Recall_macro': recall_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
-          'F1_macro': f1_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+          'Accuracy': accuracy_score(_y_test, predicted),
+          'Precision_macro': precision_score(_y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+          'Recall_macro': recall_score(_y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
+          'F1_macro': f1_score(_y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
         }
         results.append(scores)
         print_and_write('\n' + name, file = f)
         for metric in ['Accuracy', 'Precision_macro', 'Recall_macro', 'F1_macro']:
           print_and_write(metric + ':', round(scores[metric], 4), file = f)
       
-      print_and_write('Training reviews:', len(train), file = f)
+      print_and_write('Training reviews:', len(_train_dataset), file = f)
       print_and_write('Validation reviews:', len(validation), file = f)
       print_and_write('Test reviews:', len(test), file = f)
       print_and_write('Features per review:', X_train.shape[1], file = f)
-      print_and_write('Selected model:', model, file = f)
+      print_and_write('Selected model:', _model, file = f)
       
       show_results('Majority baseline', baseline)
       show_results('Word embeddings + Gaussian Naive Bayes', predictions)
       makedirs(RESULTS_DIR, exist_ok = True)
       pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False, lineterminator = '\n')
       pd.DataFrame(classification_report(
-        y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
+        _y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
       )).T.to_csv(WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH, lineterminator = '\n')
       pd.DataFrame(
-        confusion_matrix(y_test, predictions, labels = labels), index = labels, columns = labels,
+        confusion_matrix(_y_test, predictions, labels = labels), index = labels, columns = labels,
       ).to_csv(WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH, index_label = 'Actual / Predicted', lineterminator = '\n')
       
       ConfusionMatrixDisplay.from_predictions(
-        y_test,
+        _y_test,
         predictions,
         labels = labels,
         display_labels = labels,
@@ -182,32 +182,32 @@ def test():
       
       word_counts = Counter(
         word
-        for text in train['Text']
+        for text in _train_dataset['Text']
         for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
       )
       print_and_write('Training vocabulary:', len(word_counts), file = f)
-      print_and_write('Training words found in GloVe:', sum(word in embeddings for word in word_counts), file = f)
+      print_and_write('Training words found in GloVe:', sum(word in _embeddings for word in word_counts), file = f)
       
       contributions = {}
       review_counts = Counter()
       
       def class_scores(vectors):
-        probabilities = model.predict_log_proba(vectors)
+        probabilities = _model.predict_log_proba(vectors)
         return probabilities - (probabilities.sum(axis = 1, keepdims = True) - probabilities) / 2
       
       training_scores = class_scores(X_train)
       
-      for text, vector, original_score in zip(train['Text'], X_train, training_scores):
+      for text, vector, original_score in zip(_train_dataset['Text'], X_train, training_scores):
         counts = Counter(
           word for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
-          if word in embeddings
+          if word in _embeddings
         )
         total = sum(counts.values())
         words = [word for word in counts if word_counts[word] >= 5 and counts[word] < total]
         if not words:
           continue
         without_words = np.array([
-          (vector * total - embeddings[word] * counts[word]) / (total - counts[word])
+          (vector * total - _embeddings[word] * counts[word]) / (total - counts[word])
           for word in words
         ])
         changes = original_score - class_scores(without_words)
@@ -226,7 +226,7 @@ def test():
           'Reviews': review_counts[word],
         }
         for word in contributions if review_counts[word] >= 5
-        for i, label in enumerate(model.classes_)
+        for i, label in enumerate(_model.classes_)
       ])
       makedirs(WORD_EMBEDDINGS_LABELED_WORDS_DIR, exist_ok = True)
       fig, axes = plt.subplots(1, 3, figsize = (16, 6))
