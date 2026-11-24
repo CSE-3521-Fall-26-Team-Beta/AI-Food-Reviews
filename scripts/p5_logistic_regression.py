@@ -64,7 +64,7 @@ def categorize(review_text, print_func = print):
   else:
     return {
       'prediction': prediction,
-      'probabilities': dict(prediction_values),
+      'values': dict(prediction_values),
     }
 
 if __name__ == '__main__':
