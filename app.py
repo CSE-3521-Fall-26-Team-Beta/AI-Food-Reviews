@@ -17,13 +17,20 @@ prediction, comparison, analysis = st.tabs(
   ['Predict Sentiment', 'Model Comparison', 'DistilBERT Analysis']
 )
 
+def print_to_streamlit(text: str):
+  if text.count('\n') > 0:
+    header, *remainder = text.split('\n')
+    st.info(header + '\n' + '\n'.join(map(lambda probability_value: f'- {probability_value}', remainder)))
+  else:
+    st.info(text)
+
 with prediction:
   with st.form('sentiment_prediction'):
     review = st.text_area(
       'Food review',
       placeholder='Enter a food review to compare sentiment predictions.',
     )
-    submitted = st.form_submit_button('Predict Sentiment', type='primary')
+    submitted = st.form_submit_button('Predict Sentiment', type = 'primary')
   
   if submitted and not review.strip():
     st.warning('Enter a food review before requesting a prediction.')
@@ -37,9 +44,15 @@ with prediction:
   for column, model_info in zip(
     st.columns(3), models_list
   ):
+    model_name, categorize = model_info
+    
     with column:
-      st.subheader(model_info[0])
-      model_info[1](review, print_func = st.info)
+      st.subheader(model_name)
+      
+      categorize(
+        review,
+        print_func = print_to_streamlit,
+      )
 
 with comparison:
   metrics_file = results / 'word_embeddings' / 'metrics.csv'
