@@ -4,12 +4,14 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
+from lib.constants import DISTILBERT_LOSS_CURVES_PATH
+
 # Epoch-level weighted cross-entropy from the timed three-epoch benchmark.
 # Keep the measurements here so a fresh checkout can reproduce the figure.
 EPOCHS = [1, 2, 3]
 TRAIN_LOSS = [0.4367828014693514, 0.3004200039649159, 0.20563389205886637]
 VAL_LOSS = [0.4028204496797125, 0.39416932374485, 0.4432000800590681]
-OUTPUT = Path(__file__).resolve().parents[1] / 'results' / 'distilbert_loss_curves.png'
+OUTPUT = Path(DISTILBERT_LOSS_CURVES_PATH)
 
 def main():
   fig, ax = plt.subplots(figsize = (6.8, 3.8), layout = 'constrained')
