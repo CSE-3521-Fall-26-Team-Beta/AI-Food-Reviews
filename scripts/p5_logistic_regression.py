@@ -18,7 +18,7 @@ _transform_data = None
 _model = None
 
 def _init_model_vars():
-  global _X_test, _X_train, _test_df, _train_df, _transform_data
+  global _X_test, _X_train, _test_df, _train_df, _transform_data, _model
   
   if _X_test == None:
     _X_test, _X_train, _test_df, _train_df, _transform_data = perform_feature_engineering()
