@@ -36,7 +36,11 @@ word-contribution chart, and misclassified examples are saved in
 
 To recalculate everything, delete the `models` and `results` folders, then delete the `data-bin/group_sample_seedXX.csv` file in `data-bin`. Then run `./scripts/a0_everything.ps1` to regenerate all reports and retrain all models.
 
-# Streamlit App
+# Streamlit App (Local)
+
+To run the streamlit app locally, run `python -m p8_streamlit_local.py` from the repo root.
+
+# Streamlit App (Production)
 
 The production Streamlit deployment doesn't include DistilBERT as running it crashes Streamlit.
 
