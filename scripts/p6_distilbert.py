@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, DistilBertModel
 
 from lib.constants import DISTILBERT_CHECKPOINT_PATH, DISTILBERT_REPORT_PATH, MODEL_DIR, SAMPLE_CSV_PATH, TRAINING_SEED
+from lib.generate_group_sample import ensure_sample_csv_exists
 from lib.ml_helpers import print_and_write
 
 MODEL = 'distilbert/distilbert-base-uncased'
@@ -39,6 +40,7 @@ def _clean_text(text):
   return ' '.join(re.sub(r'<[^>]+>', ' ', text.lower()).split())
 
 def _review_splits():
+  ensure_sample_csv_exists()
   reviews = pd.read_csv(SAMPLE_CSV_PATH, usecols = ['Text', 'Score'])
   reviews['label'] = reviews['Score'].map({1: 0, 2: 0, 3: 1, 4: 2, 5: 2})
   reviews = reviews.dropna().copy()
