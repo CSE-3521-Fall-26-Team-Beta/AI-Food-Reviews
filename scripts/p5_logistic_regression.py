@@ -45,14 +45,14 @@ def test():
 def categorize(review_text, print_func = print):
   _init_model_vars()
   
-  prediction = _model.predict(_transform_data([review_text]))[0]
+  prediction = _model.predict(_transform_data([review_text]))[0].lower()
   prediction_values = zip(
     (label.lower() for label in _model.classes_),
     _model.decision_function(_transform_data([review_text]))[0]
   )
   
   if print_func != None:
-    print_func(f'Prediction: {prediction}')
+    print_func(f'Prediction: {prediction.title()}')
     print_func(
       'Prediction Values:\n' +
       '\n'.join(

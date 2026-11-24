@@ -273,14 +273,14 @@ def test():
 def categorize(review_text, print_func = print):
   _init_model_vars()
   
-  prediction = _model.predict([_transform_data(review_text)])[0]
+  prediction = _model.predict([_transform_data(review_text)])[0].lower()
   prediction_probabilities = zip(
     (label.lower() for label in _model.classes_),
     _model.predict_proba([_transform_data(review_text)])[0]
   )
   
   if print_func != None:
-    print_func(f'Prediction: {prediction}')
+    print_func(f'Prediction: {prediction.title()}')
     
     print_func(
       'Prediction Probabilities:\n' + 
