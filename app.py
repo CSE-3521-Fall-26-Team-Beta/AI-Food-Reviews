@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from lib.constants import WORD_EMBEDDINGS_METRICS_PATH
 from scripts.p4_word_embeddings import categorize as word_embeddings_gaussian_naive_bayes_categorize
 from scripts.p5_logistic_regression import categorize as tf_idf_logistic_regression_categorize
 from scripts.p6_distilbert import categorize as distilbert_categorize
@@ -55,11 +56,11 @@ with prediction:
       )
 
 with comparison:
-  metrics_file = results / 'word_embeddings' / 'metrics.csv'
+  metrics_file = Path(WORD_EMBEDDINGS_METRICS_PATH)
   if metrics_file.is_file():
     st.dataframe(pd.read_csv(metrics_file), hide_index = True)
   else:
-    st.warning('Cannot find results/word_embeddings/metrics.csv')
+    st.warning('Cannot find word embeddings metrics CSV file')
 
 with analysis:
   loss_image = results / 'distilbert_loss_curves.png'
