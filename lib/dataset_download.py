@@ -64,7 +64,7 @@ def _kaggle_raw_api_download_archive():
   with open(f'{DATA_BIN_DIR}/{ARCHIVE_ZIP_NAME}', 'wb') as f:
     f.write(response.content)
 
-def _kaggle_raw_api_download_reviews():
+def _kaggle_download_reviews():
   try:
     _extract_reviews_from_archive()
   except FileNotFoundError:
@@ -98,7 +98,7 @@ def ensure_results_csv_exists():
     print(f'{REVIEWS_CSV_NAME} not found, downloading...')
     
     #_kaggle_python_package_download_reviews()
-    _kaggle_raw_api_download_reviews()
+    _kaggle_download_reviews()
     return True
   else:
     return False

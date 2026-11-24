@@ -29,6 +29,7 @@ from lib.constants import (
   WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH,
   WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH,
 )
+from lib.glove_download import ensure_glove_exists
 from lib.ml_helpers import get_annotated_sample_df
 
 root = Path(__file__).resolve().parents[1]
@@ -54,6 +55,7 @@ df = df.drop_duplicates('Text')
 
 embeddings = {}
 
+ensure_glove_exists()
 with open(GLOVE_PATH, encoding = 'utf-8') as file:
   for line in file:
     parts = line.split()
