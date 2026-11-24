@@ -45,7 +45,7 @@ def train():
 def categorize(review_text):
   _init_model_vars()
   
-  prediction = _transform_data([review_text])
+  prediction = _model.predict(_transform_data([review_text]))[0]
   
   print(f'Prediction: {prediction}')
 
