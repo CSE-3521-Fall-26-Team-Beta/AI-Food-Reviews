@@ -70,7 +70,7 @@ def _init_model_vars():
     _tokenizer = AutoTokenizer.from_pretrained(MODEL)
     _model = _SentimentModel().to(_device)
 
-def train():
+def train(epochs = 3):
   _init_model_vars()
   
   train, val, test = _review_splits()
@@ -107,7 +107,7 @@ def train():
   
   with open(DISTILBERT_REPORT_PATH, 'w', newline = '') as f:
     best_f1 = -1
-    for epoch in range(args.epochs):
+    for epoch in range(epochs):
       _model.train()
       for step, (texts, labels) in enumerate(batches, 1):
         optimizer.zero_grad()
@@ -156,7 +156,7 @@ def main():
   if args.review is not None:
     categorize(args.review)
   else:
-    train()
+    train(args.epochs)
 
 if __name__ == '__main__':
   main()
