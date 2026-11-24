@@ -35,7 +35,7 @@ from lib.constants import (
   WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH,
 )
 from lib.glove_download import ensure_glove_exists
-from lib.ml_helpers import get_annotated_sample_df
+from lib.ml_helpers import get_annotated_sample_df, print_and_write
 
 if not exists(WORD_EMBEDDINGS_REPORT_PATH):
   print('Calculating word embeddings...')
@@ -128,15 +128,15 @@ if not exists(WORD_EMBEDDINGS_REPORT_PATH):
         'F1_macro': f1_score(y_test, predicted, labels = labels, average = 'macro', zero_division = 0),
       }
       results.append(scores)
-      print('\n' + name, file = f)
+      print_and_write('\n' + name, file = f)
       for metric in ['Accuracy', 'Precision_macro', 'Recall_macro', 'F1_macro']:
-        print(metric + ':', round(scores[metric], 4), file = f)
+        print_and_write(metric + ':', round(scores[metric], 4), file = f)
     
-    print('Training reviews:', len(train), file = f)
-    print('Validation reviews:', len(validation), file = f)
-    print('Test reviews:', len(test), file = f)
-    print('Features per review:', X_train.shape[1], file = f)
-    print('Selected model:', model, file = f)
+    print_and_write('Training reviews:', len(train), file = f)
+    print_and_write('Validation reviews:', len(validation), file = f)
+    print_and_write('Test reviews:', len(test), file = f)
+    print_and_write('Features per review:', X_train.shape[1], file = f)
+    print_and_write('Selected model:', model, file = f)
     
     show_results('Majority baseline', baseline)
     show_results('Word embeddings + Gaussian Naive Bayes', predictions)
@@ -165,8 +165,8 @@ if not exists(WORD_EMBEDDINGS_REPORT_PATH):
       for text in train['Text']
       for word in re.findall(r'[a-z]+(?:\'[a-z]+)?', text)
     )
-    print('Training vocabulary:', len(word_counts), file = f)
-    print('Training words found in GloVe:', sum(word in embeddings for word in word_counts), file = f)
+    print_and_write('Training vocabulary:', len(word_counts), file = f)
+    print_and_write('Training words found in GloVe:', sum(word in embeddings for word in word_counts), file = f)
     
     contributions = {}
     review_counts = Counter()
@@ -214,7 +214,7 @@ if not exists(WORD_EMBEDDINGS_REPORT_PATH):
       words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]
       words = words.nlargest(10, 'Contribution').sort_values('Contribution')
       words.to_csv(f'{WORD_EMBEDDINGS_LABELED_WORDS_DIR}/{label.lower()}_words.csv', index = False, lineterminator = '\n')
-      print(f'\n{label} words:\n', words.to_string(index = False), file = f)
+      print_and_write(f'\n{label} words:\n', words.to_string(index = False), file = f)
       ax.barh(words['Word'], words['Contribution'], color = color)
       ax.set_title(f'Words associated with {label.lower()}')
       ax.set_xlabel('Mean change in relative class log score\n(original minus word removed)')
