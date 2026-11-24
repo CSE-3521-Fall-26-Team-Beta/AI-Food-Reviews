@@ -3,10 +3,14 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from scripts.p4_word_embeddings import categorize as word_embeddings_gaussian_naive_bayes_categorize
+from scripts.p5_logistic_regression import categorize as tf_idf_logistic_regression_categorize
+from scripts.p6_distilbert import categorize as distilbert_categorize
+
 root = Path(__file__).resolve().parent
 results = root / 'results'
 
-st.set_page_config(page_title='AI Food Reviews', layout='wide')
+st.set_page_config(page_title = 'AI Food Reviews', layout = 'wide')
 st.title('AI Food Reviews')
 
 prediction, comparison, analysis = st.tabs(
@@ -25,7 +29,7 @@ with prediction:
     st.warning('Enter a food review before requesting a prediction.')
   
   for column, model_name in zip(
-    st.columns(2), ('Gaussian Naive Bayes', 'DistilBERT')
+    st.columns(3), ('Word Embeddings + Gaussian Naive Bayes', 'TF-IDF + Logistic Regression', 'DistilBERT')
   ):
     with column:
       st.subheader(model_name)
