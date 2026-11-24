@@ -76,10 +76,11 @@ def _init_model_vars():
 def _init_model_vars_with_saved_weights():
   if _device == None:
     _init_model_vars()
-    _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
-    _model.eval()
+    if not ensure_model_weights_exist():
+      _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
+      _model.eval()
 
-def train(epochs = 3):
+def ensure_model_weights_exist(epochs = 3):
   if not exists(DISTILBERT_REPORT_PATH):
     print('Training DistilBERT...')
     
@@ -141,7 +142,13 @@ def train(epochs = 3):
       print_and_write(pd.DataFrame(metrics).T.round(3), file = f)
     
     print(f'DistilBERT training report saved to {DISTILBERT_REPORT_PATH}')
+    
+    return True
   else:
+    return False
+
+def train(epochs = 3):
+  if not ensure_model_weights_exist(epochs = epochs):
     print('DistilBERT already trained')
 
 def categorize(review_text, print_func = print):
