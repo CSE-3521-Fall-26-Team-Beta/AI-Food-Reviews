@@ -7,3 +7,4 @@ __pycache__
 /results/dataset_analysis.txt
 /results/feature_engineering_report.txt
 /results/score_distribution.png
+/results/word_embedding_report.txt
