@@ -35,3 +35,9 @@ word-contribution chart, and misclassified examples are saved in
 # Full results regeneration
 
 To recalculate everything, delete the `models` and `results` folders, then delete the `data-bin/group_sample_seedXX.csv` file in `data-bin`. Then run `./scripts/a0_everything.ps1` to regenerate all reports and retrain all models.
+
+# Streamlit App
+
+The production Streamlit deployment doesn't include DistilBERT as running it crashes Streamlit.
+
+Url: https://cse-3521-fall-26-team-beta-ai-food-reviews.streamlit.app/
