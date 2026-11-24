@@ -30,7 +30,6 @@ class SentimentModel(nn.Module):
     cls = self.encoder(**tokens).last_hidden_state[:, 0]
     return self.mlp(cls)
 
-
 def review_splits():
   reviews = pd.read_csv(SAMPLE_CSV_PATH, usecols = ['Text', 'Score'])
   reviews['label'] = reviews['Score'].map({1: 0, 2: 0, 3: 1, 4: 2, 5: 2})
@@ -54,8 +53,6 @@ def main():
   parser.add_argument('--review', help = 'Classify a review with the saved model')
   parser.add_argument('--epochs', type = int, default = 3)
   args = parser.parse_args()
-  if args.epochs < 1:
-    parser.error('--epochs must be positive')
   
   torch.manual_seed(TRAINING_SEED)
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -86,6 +83,9 @@ def main():
     for label, probability in zip(LABELS, probabilities):
       print(f'{label}: {probability:.1%}')
     return
+  
+  if args.epochs < 1:
+    parser.error('--epochs must be positive')
   
   train, val, test = review_splits()
   batches = DataLoader(
