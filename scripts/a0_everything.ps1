@@ -1,3 +1,5 @@
+# Runs all main non-Streamlit scripts to ensure all output files are created. Run from the repository root with "./scripts/a0_everything.ps1".
+
 Set-Location "$PSScriptRoot/.."
 
 python -m scripts.p0_download_data

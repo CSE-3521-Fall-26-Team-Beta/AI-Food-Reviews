@@ -1,4 +1,4 @@
-'Computes reference file hashes for all downloaded input files and result output files for  verification and places them in results/verification_hashes.txt. Run from the repository root with "python -m scripts.z0_make_hashes". This file is intended to be run by repo contributors and the resultant verification file committed.'
+'Computes reference file hashes for all downloaded input files and result output files for verification and places them in results/verification_hashes.txt. Run from the repository root with "python -m scripts.z0_make_hashes". This file is intended to be run by repo contributors and the resultant verification file committed.'
 
 from os.path import exists
 
