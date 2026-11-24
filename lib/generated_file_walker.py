@@ -10,8 +10,9 @@ def walk_auto_generated_files():
     if dir_path == REPO_ROOT_DIR:
       dir_names[:] = ['data-bin', 'results']
     else:
-      # Trim results dir walk to not contain verification hash file
+      # Trim results dir walk to not contain documentation directory and not contain verification hash file
       if dir_path.replace('\\', '/') == RESULTS_DIR.replace('\\', '/'):
+        del dir_names[dir_names.index('documentation')]
         del file_names[file_names.index(VERIFICATION_HASH_NAME)]
       
       for file_name in file_names:
