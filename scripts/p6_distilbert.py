@@ -1,4 +1,4 @@
-'Generates DistilBERT modern model. Run from the repository root with "python -m scripts.p6_distilbert" to train, and "python -m scripts.p6_distilbert --review <your review text in quotes>" to predict.'
+'Generates DistilBERT modern model. Run from the repository root with "python -m scripts.p6_distilbert" or "python -m scripts.p6_distilbert --epochs <epoch count (default 3)>" to train, and "python -m scripts.p6_distilbert --review <your review text in quotes>" to predict.'
 
 import argparse
 import re

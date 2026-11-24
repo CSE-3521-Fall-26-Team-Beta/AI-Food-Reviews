@@ -92,6 +92,9 @@ def perform_feature_engineering(report_file = None):
   X_val = vectorizer.transform(val_df['Text'])
   X_test = vectorizer.transform(test_df['Text'])
   
+  def transform_data(review_text):
+    return vectorizer.transform(review_text)
+  
   if report_file != None:
     # Display feature engineering results
     print('\nTF-IDF FEATURE ENGINEERING REPORT', file = f)
@@ -125,7 +128,7 @@ def perform_feature_engineering(report_file = None):
       if row[0, i] > 0:
         print(f'{feature_names[i]}: {row[0, i]:.4f}', file = f)
   
-  return X_test, X_train, test_df, train_df
+  return X_test, X_train, test_df, train_df, transform_data
 
 if __name__ == '__main__':
   if not exists(FEATURE_ENGINEERING_REPORT_PATH):
