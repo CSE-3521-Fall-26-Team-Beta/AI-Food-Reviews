@@ -46,9 +46,11 @@ def categorize(review_text, print_func = print):
   _init_model_vars()
   
   prediction = _model.predict(_transform_data([review_text]))[0]
+  raw_prediction = _model.decision_function(_transform_data([review_text]))[0]
   
   if print_func != None:
     print_func(f'Prediction: {prediction}')
+    print_func(f'Raw Prediction: {raw_prediction}')
   else:
     return prediction
 
