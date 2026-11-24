@@ -1,4 +1,4 @@
-'Generates logistic regression classical model. Run from the repository root with "python -m scripts.p5_logistic_regression" to train, and [TODO] "python -m scripts.p5_logistic_regression --review <your review text in quotes>" to predict.'
+'Generates logistic regression classical model. Run from the repository root with "python -m scripts.p5_logistic_regression" to train and test, and [TODO] "python -m scripts.p5_logistic_regression --review <your review text in quotes>" to train and predict.'
 
 import argparse
 from os.path import exists
@@ -33,7 +33,6 @@ def train():
     
     with open(LOGISTIC_REGRESSION_REPORT_PATH, 'w', newline = '') as f:
       _init_model_vars()
-      
       
       predictions = _model.predict(_X_test)
       print_and_write('Logistic regression on held-out reviews', file = f)
