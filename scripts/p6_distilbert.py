@@ -53,6 +53,8 @@ def main():
   parser.add_argument('--review', help = 'Classify a review with the saved model')
   parser.add_argument('--epochs', type = int, default = 3)
   args = parser.parse_args()
+  if args.epochs < 1:
+    parser.error('--epochs must be positive')
   
   torch.manual_seed(TRAINING_SEED)
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -83,9 +85,6 @@ def main():
     for label, probability in zip(LABELS, probabilities):
       print(f'{label}: {probability:.1%}')
     return
-  
-  if args.epochs < 1:
-    parser.error('--epochs must be positive')
   
   train, val, test = review_splits()
   batches = DataLoader(
