@@ -45,7 +45,7 @@ if not exists(FEATURE_ENGINEERING_REPORT_PATH):
     conflicting_texts = conflicting_texts[conflicting_texts > 1].index
     
     df = df[~df['Text'].isin(conflicting_texts)].copy()
-    df = df.drop_duplicates(subset=['Text']).copy()
+    df = df.drop_duplicates(subset = ['Text']).copy()
     
     removed_count = original_count - len(df)
     

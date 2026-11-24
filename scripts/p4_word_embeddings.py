@@ -19,7 +19,6 @@ from sklearn.metrics import (
 
 from lib.constants import (
   GLOVE_PATH,
-  REVIEWS_CSV_PATH,
   TRAINING_SEED,
   WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH,
   WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH,
@@ -30,30 +29,26 @@ from lib.constants import (
   WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH,
   WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH,
 )
+from lib.ml_helpers import get_annotated_sample_df
 
 root = Path(__file__).resolve().parents[1]
 output = WORD_EMBEDDINGS_DIR
 Path(output).mkdir(parents = True, exist_ok = True)
 
-df = pd.read_csv(REVIEWS_CSV_PATH)
+# Note: this previously used the entire dataset not just the sample
+# Tweaked to only use the sample
+df = get_annotated_sample_df()
 df = df[df['Score'].isin([1, 2, 3, 4, 5])]
 df = df.dropna(subset = ['Text']).copy()
 
 labels = ['Negative', 'Neutral', 'Positive']
-df['label'] = df['Score'].map({
-  1: 'Negative',
-  2: 'Negative',
-  3: 'Neutral',
-  4: 'Positive',
-  5: 'Positive',
-})
 
 df['Text'] = df['Text'].str.lower()
 df['Text'] = df['Text'].str.replace(r'<[^>]+>', ' ', regex = True)
 df['Text'] = df['Text'].str.replace(r'\s+', ' ', regex = True).str.strip()
 df = df[df['Text'] != '']
 
-label_counts = df.groupby('Text')['label'].nunique()
+label_counts = df.groupby('Text')['Sentiment'].nunique()
 df = df[df['Text'].isin(label_counts[label_counts == 1].index)]
 df = df.drop_duplicates('Text')
 
@@ -77,28 +72,28 @@ train, remaining = train_test_split(
   df,
   test_size = 0.30,
   random_state = TRAINING_SEED,
-  stratify = df['label'],
+  stratify = df['Sentiment'],
 )
 validation, test = train_test_split(
   remaining,
   test_size = 2 / 3,
   random_state = TRAINING_SEED,
-  stratify = remaining['label'],
+  stratify = remaining['Sentiment'],
 )
 
 X_train = np.array([review_vector(text) for text in train['Text']])
 X_validation = np.array([review_vector(text) for text in validation['Text']])
 X_test = np.array([review_vector(text) for text in test['Text']])
 
-y_train = train['label']
-y_test = test['label']
+y_train = train['Sentiment']
+y_test = test['Sentiment']
 
 best_f1 = -1
 for smoothing in [1e-9, 1e-7, 1e-5]:
   candidate = GaussianNB(var_smoothing = smoothing)
   candidate.fit(X_train, y_train)
   score = f1_score(
-    validation['label'],
+    validation['Sentiment'],
     candidate.predict(X_validation),
     average = 'macro',
     zero_division = 0,
@@ -125,7 +120,6 @@ def show_results(name, predicted):
   print('\n' + name)
   for metric in ['Accuracy', 'Precision_macro', 'Recall_macro', 'F1_macro']:
     print(metric + ':', round(scores[metric], 4))
-
 
 print('Training reviews:', len(train))
 print('Validation reviews:', len(validation))
@@ -216,15 +210,15 @@ fig.tight_layout()
 fig.savefig(WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH, dpi = 200)
 plt.close(fig)
 
-errors = test[['Text', 'Score', 'label']].copy()
+errors = test[['Text', 'Score', 'Sentiment']].copy()
 errors['prediction'] = predictions
-errors = errors[errors['label'] != errors['prediction']]
+errors = errors[errors['Sentiment'] != errors['prediction']]
 examples = pd.concat([
   group.sample(
     n = min(3, len(group)),
     random_state = TRAINING_SEED,
   )
-  for _, group in errors.groupby('label')
+  for _, group in errors.groupby('Sentiment')
 ])
 examples.to_csv(WORD_EMBEDDINGS_MISCLASSIFIED_REVIEWS_PATH, index = False)
 print('Results saved to:', output)
