@@ -45,6 +45,7 @@ _LABELS = ['Negative', 'Neutral', 'Positive']
 _embeddings = None
 _train_dataset = None
 _validation_dataset = None
+_test_dataset = None
 _X_train = None
 _X_test = None
 _y_train = None
@@ -61,7 +62,7 @@ def _transform_data(text):
   return np.mean(vectors, axis = 0)
 
 def _train():
-  global _embeddings, _train_dataset, _validation_dataset, _X_train, _X_test, _y_train, _y_test, _model
+  global _embeddings, _train_dataset, _validation_dataset, _test_dataset, _X_train, _X_test, _y_train, _y_test, _model
   
   # Note: this previously used the entire dataset not just the sample
   # Tweaked to only use the sample
@@ -92,7 +93,7 @@ def _train():
     random_state = TRAINING_SEED,
     stratify = df['Sentiment'],
   )
-  _validation_dataset, test = train_test_split(
+  _validation_dataset, _test_dataset = train_test_split(
     remaining,
     test_size = 2 / 3,
     random_state = TRAINING_SEED,
@@ -101,10 +102,10 @@ def _train():
   
   _X_train = np.array([_transform_data(text) for text in _train_dataset['Text']])
   X_validation = np.array([_transform_data(text) for text in _validation_dataset['Text']])
-  _X_test = np.array([_transform_data(text) for text in test['Text']])
+  _X_test = np.array([_transform_data(text) for text in _test_dataset['Text']])
   
   _y_train = _train_dataset['Sentiment']
-  _y_test = test['Sentiment']
+  _y_test = _test_dataset['Sentiment']
   
   best_f1 = -1
   for smoothing in [1e-9, 1e-7, 1e-5]:
@@ -156,7 +157,7 @@ def test():
       
       print_and_write('Training reviews:', len(_train_dataset), file = f)
       print_and_write('Validation reviews:', len(_validation_dataset), file = f)
-      print_and_write('Test reviews:', len(test), file = f)
+      print_and_write('Test reviews:', len(_test_dataset), file = f)
       print_and_write('Features per review:', _X_train.shape[1], file = f)
       print_and_write('Selected model:', _model, file = f)
       
@@ -245,7 +246,7 @@ def test():
       fig.savefig(WORD_EMBEDDINGS_WORD_CONTRIBUTIONS_IMAGE_PATH, dpi = 200)
       plt.close(fig)
       
-      errors = test[['Text', 'Score', 'Sentiment']].copy()
+      errors = _test_dataset[['Text', 'Score', 'Sentiment']].copy()
       errors['prediction'] = predictions
       errors = errors[errors['Sentiment'] != errors['prediction']]
       examples = pd.concat([
