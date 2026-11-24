@@ -33,7 +33,13 @@ with prediction:
   ):
     with column:
       st.subheader(model_name)
-      st.info('Predictions will appear here once this model is connected.')
+      match model_name:
+        case 'Word Embeddings + Gaussian Naive Bayes':
+          st.info(word_embeddings_gaussian_naive_bayes_categorize(review))
+        case 'TF-IDF + Logistic Regression':
+          st.info(tf_idf_logistic_regression_categorize(review))
+        case 'DistilBERT':
+          st.info(distilbert_categorize(review))
 
 with comparison:
   metrics_file = results / 'word_embeddings' / 'metrics.csv'
