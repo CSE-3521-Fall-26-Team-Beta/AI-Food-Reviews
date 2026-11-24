@@ -159,8 +159,10 @@ def categorize(review_text, print_func = print):
   if print_func != None:
     print_func(f'Prediction: {prediction}')
     
-    for label, probability in zip(LABELS, probabilities):
-      print_func(f'{label}: {probability:.1%}')
+    print_func(
+      'Prediction probabilities:\n' + 
+      '\n'.join(f'{label}: {probability:.1%}' for label, probability in zip(LABELS, probabilities))
+    )
   else:
     return {
       'prediction': prediction,
