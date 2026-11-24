@@ -1,6 +1,8 @@
 import re
 from collections import Counter
 from pathlib import Path
+from os import makedirs
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -19,6 +21,7 @@ from sklearn.metrics import (
 
 from lib.constants import (
   GLOVE_PATH,
+  RESULTS_DIR,
   TRAINING_SEED,
   WORD_EMBEDDINGS_CLASSIFICATION_REPORT_PATH,
   WORD_EMBEDDINGS_CONFUSION_MATRIX_DATA_PATH,
@@ -131,6 +134,7 @@ print('Selected model:', model)
 
 show_results('Majority baseline', baseline)
 show_results('Word embeddings + Gaussian Naive Bayes', predictions)
+makedirs(RESULTS_DIR, exist_ok = True)
 pd.DataFrame(results).to_csv(WORD_EMBEDDINGS_METRICS_PATH, index = False, lineterminator = '\n')
 pd.DataFrame(classification_report(
   y_test, predictions, labels = labels, output_dict = True, zero_division = 0,
@@ -198,6 +202,7 @@ word_scores = pd.DataFrame([
   for word in contributions if review_counts[word] >= 5
   for i, label in enumerate(model.classes_)
 ])
+makedirs(WORD_EMBEDDINGS_LABELED_WORDS_DIR, exist_ok = True)
 fig, axes = plt.subplots(1, 3, figsize = (16, 6))
 for ax, label, color in zip(axes, labels, ['tomato', 'steelblue', 'seagreen']):
   words = word_scores[(word_scores['Sentiment'] == label) & (word_scores['Contribution'] > 0)]

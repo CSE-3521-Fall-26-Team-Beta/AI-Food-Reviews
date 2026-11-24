@@ -23,6 +23,7 @@ RESULTS_DIR = f'{REPO_ROOT_DIR}/results'
 DATASET_ANALYSIS_PATH = f'{RESULTS_DIR}/dataset_analysis.txt'
 SCORE_DISTRIBUTION_PATH = f'{RESULTS_DIR}/score_distribution.png'
 FEATURE_ENGINEERING_REPORT_PATH = f'{RESULTS_DIR}/feature_engineering_report.txt'
+WORD_EMBEDDING_REPORT_PATH = f'{RESULTS_DIR}/word_embedding_report.txt'
 VERIFICATION_HASH_NAME = f'verification_hashes.txt'
 VERIFICATION_HASH_PATH = f'{RESULTS_DIR}/{VERIFICATION_HASH_NAME}'
 
