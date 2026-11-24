@@ -28,29 +28,29 @@ with prediction:
   if submitted and not review.strip():
     st.warning('Enter a food review before requesting a prediction.')
   
-  for column, model_name in zip(
-    st.columns(3), ('Word Embeddings + Gaussian Naive Bayes', 'TF-IDF + Logistic Regression', 'DistilBERT')
+  models_list = (
+    ('Word Embeddings + Gaussian Naive Bayes', word_embeddings_gaussian_naive_bayes_categorize),
+    ('TF-IDF + Logistic Regression', tf_idf_logistic_regression_categorize),
+    ('DistilBERT', distilbert_categorize),
+  )
+  
+  for column, model_info in zip(
+    st.columns(3), models_list
   ):
     with column:
-      st.subheader(model_name)
-      match model_name:
-        case 'Word Embeddings + Gaussian Naive Bayes':
-          word_embeddings_gaussian_naive_bayes_categorize(review, print_func = st.info)
-        case 'TF-IDF + Logistic Regression':
-          tf_idf_logistic_regression_categorize(review, print_func = st.info)
-        case 'DistilBERT':
-          distilbert_categorize(review, print_func = st.info)
+      st.subheader(model_info[0])
+      model_info[1](review, print_func = st.info)
 
 with comparison:
   metrics_file = results / 'word_embeddings' / 'metrics.csv'
   if metrics_file.is_file():
-    st.dataframe(pd.read_csv(metrics_file), hide_index=True)
+    st.dataframe(pd.read_csv(metrics_file), hide_index = True)
   else:
     st.warning('Cannot find results/word_embeddings/metrics.csv')
 
 with analysis:
   loss_image = results / 'distilbert_loss_curves.png'
   if loss_image.is_file():
-    st.image(str(loss_image), caption='DistilBERT training and validation loss')
+    st.image(str(loss_image), caption = 'DistilBERT training and validation loss')
   else:
     st.warning('Cannot find results/distilbert_loss_curves.png')
