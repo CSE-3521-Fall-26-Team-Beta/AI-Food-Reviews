@@ -1,6 +1,5 @@
 '''Recreates the report figure.'''
 
-#from os.path import exists
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -12,10 +11,6 @@ _OUTPUT = Path(DISTILBERT_LOSS_CURVES_PATH)
 _HISTORY = Path(DISTILBERT_LOSS_HISTORY_PATH)
 
 # Epoch-level weighted cross-entropy from the timed three-epoch benchmark.
-# Keep the measurements here so a fresh checkout can reproduce the figure.
-#EPOCHS = [1, 2, 3]
-#TRAIN_LOSS = [0.4367828014693514, 0.3004200039649159, 0.20563389205886637]
-#VAL_LOSS = [0.4028204496797125, 0.39416932374485, 0.4432000800590681]
 
 def ensure_loss_plot_created():
   if _OUTPUT.is_file() and (
