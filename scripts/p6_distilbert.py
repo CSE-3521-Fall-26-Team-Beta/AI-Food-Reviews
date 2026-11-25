@@ -16,7 +16,7 @@ from transformers import AutoTokenizer, DistilBertModel
 from lib.constants import DISTILBERT_CHECKPOINT_PATH, DISTILBERT_LOSS_HISTORY_PATH, DISTILBERT_REPORT_PATH, MODEL_DIR, SAMPLE_CSV_PATH, TRAINING_SEED
 from lib.generate_group_sample import ensure_sample_csv_exists
 from lib.ml_helpers import print_and_write
-from lib.plot_distilbert_loss import create_loss_plot
+from lib.plot_distilbert_loss import ensure_loss_plot_created
 
 MODEL = 'distilbert/distilbert-base-uncased'
 LABELS = ['negative', 'neutral', 'positive']
@@ -157,7 +157,7 @@ def ensure_model_weights_exist(epochs = 3, retrain = False):
     pd.DataFrame(history, columns = ['epoch', 'training_loss', 'validation_loss']).to_csv(
       DISTILBERT_LOSS_HISTORY_PATH, index = False, lineterminator = '\n'
     )
-    create_loss_plot()
+    ensure_loss_plot_created()
     print(f'DistilBERT training report saved to {DISTILBERT_REPORT_PATH}')
     
     return True

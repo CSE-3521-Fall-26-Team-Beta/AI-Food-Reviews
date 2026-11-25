@@ -1,6 +1,7 @@
 '''Ensure the DistilBERT loss graph exists when running the project pipeline by recreating the report figure from loss csv data. Run from the repository root with "python -m scripts.p6b_plot_distilbert_loss".'''
 
-from lib.plot_distilbert_loss import create_loss_plot
+from lib.plot_distilbert_loss import ensure_loss_plot_created
 
 if __name__ == '__main__':
-  create_loss_plot()
+  if not ensure_loss_plot_created():
+    print('DistilBERT loss curves chart already created')
