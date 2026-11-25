@@ -5,13 +5,22 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-OUTPUT = Path(__file__).resolve().parents[1] / 'results' / 'distilbert_loss_curves.png'
-HISTORY = OUTPUT.with_name('distilbert_loss_history.csv')
+from lib.constants import DISTILBERT_LOSS_CURVES_PATH, DISTILBERT_LOSS_HISTORY_PATH
 
-def main():
-  if not HISTORY.is_file():
-    raise SystemExit('Generate loss history with python -m scripts.p6_distilbert --retrain')
-  history = pd.read_csv(HISTORY)
+_OUTPUT = Path(DISTILBERT_LOSS_CURVES_PATH)
+_HISTORY = Path(DISTILBERT_LOSS_HISTORY_PATH)
+
+def create_loss_plot():
+  if _OUTPUT.is_file() and (
+    not _HISTORY.is_file()
+    or _OUTPUT.stat().st_mtime_ns >= _HISTORY.stat().st_mtime_ns
+  ):
+    raise RuntimeError('DistilBERT loss curves chart already created')
+  
+  if not _HISTORY.is_file():
+    raise RuntimeError('Generate loss history with python -m scripts.p6_distilbert --retrain')
+  
+  history = pd.read_csv(_HISTORY)
   epochs = history['epoch']
   fig, ax = plt.subplots(figsize = (6.8, 3.8), layout = 'constrained')
   for losses, label, color, marker in [
@@ -29,10 +38,10 @@ def main():
   ax.spines[['top', 'right']].set_visible(False)
   ax.grid(axis = 'y', alpha = 0.2)
   ax.legend(loc = 'lower left', frameon = False)
-  OUTPUT.parent.mkdir(parents = True, exist_ok = True)
-  fig.savefig(OUTPUT, dpi=200)
+  _OUTPUT.parent.mkdir(parents = True, exist_ok = True)
+  fig.savefig(_OUTPUT, dpi=200)
   plt.close(fig)
-  print(OUTPUT)
+  print(_OUTPUT)
 
 if __name__ == '__main__':
-  main()
+  create_loss_plot()
