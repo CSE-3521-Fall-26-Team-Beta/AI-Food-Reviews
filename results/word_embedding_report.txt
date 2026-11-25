@@ -2,7 +2,9 @@ Training reviews: 32378
 Validation reviews: 4625
 Test reviews: 9252
 Features per review: 100
-Selected model: GaussianNB(var_smoothing=1e-05)
+Selected model: Pipeline(steps=[('lineardiscriminantanalysis', LinearDiscriminantAnalysis()),
+                ('gaussiannb',
+                 GaussianNB(priors=array([0.24749881, 0.17858796, 0.57391324])))])
 
 Majority baseline
 Accuracy: 0.7795
@@ -11,48 +13,48 @@ Recall_macro: 0.3333
 F1_macro: 0.292
 
 Word embeddings + Gaussian Naive Bayes
-Accuracy: 0.5665
-Precision_macro: 0.4361
-Recall_macro: 0.4869
-F1_macro: 0.4238
+Accuracy: 0.789
+Precision_macro: 0.5463
+Recall_macro: 0.5288
+F1_macro: 0.5349
 Training vocabulary: 34757
 Training words found in GloVe: 26312
 
 Negative words:
-         Word Sentiment  Contribution  Count  Reviews
-      buried  Negative      0.799691     11       11
-mysteriously  Negative      0.809465      5        5
-        tore  Negative      0.854859     17       15
-      leaked  Negative      0.856717     63       54
-      troops  Negative      0.862088      7        7
-  improperly  Negative      0.873401      8        7
-    promptly  Negative      0.908648    120      120
-    unsealed  Negative      1.094899      8        7
-      debris  Negative      1.121116     10        9
-         que  Negative      1.142608     12        8
+       Word Sentiment  Contribution  Count  Reviews
+  horrible  Negative      0.598902    281      264
+      scam  Negative      0.626487     11        9
+     waste  Negative      0.659798    398      374
+    nettle  Negative      0.663820      7        5
+    rotten  Negative      0.679206     25       24
+disgusting  Negative      0.682638    129      123
+  airbrush  Negative      0.774759      9        6
+    debris  Negative      0.789799     10        9
+pistachios  Negative      0.938410     41       24
+   glitter  Negative      1.000775      9        5
 
 Neutral words:
-       Word Sentiment  Contribution  Count  Reviews
-        to   Neutral      0.664969  57463    22253
-     radio   Neutral      0.678568      6        6
-        is   Neutral      0.776889  41956    19829
-     weiss   Neutral      0.780910      7        5
-      this   Neutral      0.851723  38642    20515
-         a   Neutral      0.862152  68262    24203
-        it   Neutral      0.928087  53172    20014
-withdrawal   Neutral      1.029797      8        8
-       the   Neutral      1.049001 106524    26983
-    length   Neutral      3.476569     65       63
+     Word Sentiment  Contribution  Count  Reviews
+  cotton   Neutral      0.283955     43       24
+  gracie   Neutral      0.288456      7        5
+  favors   Neutral      0.290216     32       31
+    aide   Neutral      0.291378      5        5
+    slim   Neutral      0.305775    116       82
+     lil   Neutral      0.306235     19       16
+      gf   Neutral      0.333485    230      143
+     mae   Neutral      0.360376      6        5
+scottish   Neutral      0.428538     15       14
+  celtic   Neutral      0.479425     10        9
 
 Positive words:
-      Word Sentiment  Contribution  Count  Reviews
-      nog  Positive      2.114000      9        5
-    panko  Positive      2.291170     16       10
-  sockeye  Positive      2.369517      9        6
-   scones  Positive      2.375093     24       18
-      tea  Positive      2.393060   7611     2839
-     woof  Positive      2.408039      9        5
-       uh  Positive      2.610588     18       15
-   corned  Positive      2.631529      7        5
-gardening  Positive      3.963783      9        6
-      que  Positive      6.505041     12        8
+           Word Sentiment  Contribution  Count  Reviews
+           yum  Positive      0.489751    289      232
+  continuously  Positive      0.496979      9        9
+       orchids  Positive      0.503409      8        5
+     gardening  Positive      0.526051      9        6
+       sockeye  Positive      0.542125      9        6
+granddaughters  Positive      0.542536      5        5
+            ty  Positive      0.559988      7        5
+         great  Positive      0.577536   9499     7724
+ grandchildren  Positive      0.618642     32       31
+       walkers  Positive      0.648013     11        8

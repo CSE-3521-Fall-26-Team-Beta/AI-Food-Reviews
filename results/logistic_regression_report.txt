@@ -1,11 +1,11 @@
 Logistic regression on held-out reviews
               precision    recall  f1-score   support
 
-    Negative     0.5571    0.6975    0.6195       671
-     Neutral     0.2283    0.4298    0.2982       349
-    Positive     0.9498    0.8242    0.8826      3606
+    Negative     0.5826    0.6972    0.6348      1341
+     Neutral     0.2425    0.4506    0.3153       699
+    Positive     0.9458    0.8325    0.8855      7212
 
-    accuracy                         0.7760      4626
-   macro avg     0.5784    0.6505    0.6001      4626
-weighted avg     0.8384    0.7760    0.8003      4626
+    accuracy                         0.7840      9252
+   macro avg     0.5903    0.6601    0.6119      9252
+weighted avg     0.8400    0.7840    0.8061      9252
 
