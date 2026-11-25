@@ -15,7 +15,7 @@ Epoch 2, batch 1250/2024
 Epoch 2, batch 1500/2024
 Epoch 2, batch 1750/2024
 Epoch 2, batch 2000/2024
-Epoch 2 validation macro F1: 0.688
+Epoch 2 validation macro F1: 0.690
 Epoch 3, batch 250/2024
 Epoch 3, batch 500/2024
 Epoch 3, batch 750/2024
@@ -24,11 +24,11 @@ Epoch 3, batch 1250/2024
 Epoch 3, batch 1500/2024
 Epoch 3, batch 1750/2024
 Epoch 3, batch 2000/2024
-Epoch 3 validation macro F1: 0.706
+Epoch 3 validation macro F1: 0.703
 Test accuracy: 0.885
               precision  recall  f1-score  support
-negative          0.842   0.694     0.761   1341.0
-neutral           0.414   0.489     0.449    699.0
-positive          0.944   0.959     0.952   7212.0
-macro avg         0.734   0.714     0.720   9252.0
+negative          0.856   0.682     0.759   1341.0
+neutral           0.407   0.482     0.442    699.0
+positive          0.943   0.962     0.952   7212.0
+macro avg         0.735   0.708     0.718   9252.0
 weighted avg      0.890   0.885     0.886   9252.0
