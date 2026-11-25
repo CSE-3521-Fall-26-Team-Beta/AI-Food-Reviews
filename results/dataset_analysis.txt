@@ -1,0 +1,39 @@
+Total Reviews: 50000
+
+Score Distribution:
+Score
+1     4537
+2     2690
+3     3761
+4     7141
+5    31871
+Name: count, dtype: int64
+
+Sentiment Distribution:
+Negative: 7227 (14.45%)
+Neutral: 3761 (7.52%)
+Positive: 39012 (78.02%)
+
+Average Review Length:
+79.91 words
+
+Missing Values:
+Unnamed: 0                0
+Id                        0
+ProductId                 0
+UserId                    0
+ProfileName               1
+HelpfulnessNumerator      0
+HelpfulnessDenominator    0
+Score                     0
+Time                      0
+Summary                   4
+Text                      0
+Sentiment                 0
+dtype: int64
+
+Duplicate Review Texts:
+3736
+
+Duplicate Review Records:
+15
