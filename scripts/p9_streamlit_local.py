@@ -1,4 +1,4 @@
-'Runs a local Streamlit server to test the Streamlit app. Run from the repository root with "python -m scripts.p8_streamlit_local".'
+'Runs a local Streamlit server to test the Streamlit app. Run from the repository root with "python -m scripts.p9_streamlit_local".'
 
 from subprocess import run
 

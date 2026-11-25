@@ -9,4 +9,5 @@ python -m scripts.p3_feature_engineering
 python -m scripts.p4_word_embeddings
 python -m scripts.p5_logistic_regression
 python -m scripts.p6_distilbert
-python -m scripts.p7_verify_hashes
+python -m scripts.p7_plot_distilbert_loss
+python -m scripts.p8_verify_hashes

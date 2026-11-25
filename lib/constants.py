@@ -26,6 +26,7 @@ FEATURE_ENGINEERING_REPORT_PATH = f'{RESULTS_DIR}/feature_engineering_report.txt
 WORD_EMBEDDINGS_REPORT_PATH = f'{RESULTS_DIR}/word_embedding_report.txt'
 LOGISTIC_REGRESSION_REPORT_PATH = f'{RESULTS_DIR}/logistic_regression_report.txt'
 DISTILBERT_REPORT_PATH = f'{RESULTS_DIR}/distilbert_report.txt'
+DISTILBERT_LOSS_CURVES_PATH = f'{RESULTS_DIR}/distilbert_loss_curves.png'
 VERIFICATION_HASH_NAME = f'verification_hashes.txt'
 VERIFICATION_HASH_PATH = f'{RESULTS_DIR}/{VERIFICATION_HASH_NAME}'
 
