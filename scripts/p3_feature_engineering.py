@@ -1,3 +1,5 @@
+'Performs feature engineering on the dataset. Run from the repository root with "python -m scripts.p3_feature_engineering".'
+
 import re
 from pathlib import Path
 
