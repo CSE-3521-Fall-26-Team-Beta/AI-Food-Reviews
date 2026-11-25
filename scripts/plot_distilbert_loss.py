@@ -15,8 +15,8 @@ def main():
   epochs = history['epoch']
   fig, ax = plt.subplots(figsize = (6.8, 3.8), layout = 'constrained')
   for losses, label, color, marker in [
-      (history['training_loss'], 'Training', '#236396', 'o'),
-      (history['validation_loss'], 'Validation', '#a44713', 's'),
+    (history['training_loss'], 'Training', '#236396', 'o'),
+    (history['validation_loss'], 'Validation', '#a44713', 's'),
   ]:
     ax.plot(epochs, losses, label = label, color = color, marker = marker, linewidth = 2.3)
   
