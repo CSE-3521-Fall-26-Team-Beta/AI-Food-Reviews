@@ -39,7 +39,7 @@ def create_loss_plot():
   ax.grid(axis = 'y', alpha = 0.2)
   ax.legend(loc = 'lower left', frameon = False)
   _OUTPUT.parent.mkdir(parents = True, exist_ok = True)
-  fig.savefig(_OUTPUT, dpi=200)
+  fig.savefig(_OUTPUT, dpi = 200)
   plt.close(fig)
   print(_OUTPUT)
 
