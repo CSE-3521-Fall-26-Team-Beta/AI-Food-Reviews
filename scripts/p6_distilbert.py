@@ -1,4 +1,4 @@
-'Generates DistilBERT modern model. Run from the repository root with "python -m scripts.p6_distilbert" or "python -m scripts.p6_distilbert --epochs <epoch count (default 3)>" to train, and "python -m scripts.p6_distilbert --review <your review text in quotes>" to predict.'
+'Generates DistilBERT modern model. Run from the repository root with "python -m scripts.p6_distilbert" or "python -m scripts.p6_distilbert --epochs <epoch count (default 3)> [--retrain]" to train (with --retrain forcing retraining), and "python -m scripts.p6_distilbert --review <your review text in quotes>" to predict.'
 
 import argparse
 import re
@@ -13,7 +13,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, DistilBertModel
 
-from lib.constants import DISTILBERT_CHECKPOINT_PATH, DISTILBERT_REPORT_PATH, MODEL_DIR, SAMPLE_CSV_PATH, TRAINING_SEED
+from lib.constants import DISTILBERT_CHECKPOINT_PATH, DISTILBERT_LOSS_HISTORY_PATH, DISTILBERT_REPORT_PATH, MODEL_DIR, SAMPLE_CSV_PATH, TRAINING_SEED
 from lib.generate_group_sample import ensure_sample_csv_exists
 from lib.ml_helpers import print_and_write
 from scripts import plot_distilbert_loss
@@ -155,7 +155,8 @@ def ensure_model_weights_exist(epochs = 3, retrain = False):
       print_and_write(pd.DataFrame(metrics).T.round(3), file = f)
     
     pd.DataFrame(history, columns = ['epoch', 'training_loss', 'validation_loss']).to_csv(
-      plot_distilbert_loss.HISTORY, index = False)
+      DISTILBERT_LOSS_HISTORY_PATH, index = False, lineterminator = '\n'
+    )
     plot_distilbert_loss.main()
     print(f'DistilBERT training report saved to {DISTILBERT_REPORT_PATH}')
     
