@@ -16,6 +16,7 @@ from transformers import AutoTokenizer, DistilBertModel
 from lib.constants import DISTILBERT_CHECKPOINT_PATH, DISTILBERT_REPORT_PATH, MODEL_DIR, SAMPLE_CSV_PATH, TRAINING_SEED
 from lib.generate_group_sample import ensure_sample_csv_exists
 from lib.ml_helpers import print_and_write
+from scripts import plot_distilbert_loss
 
 MODEL = 'distilbert/distilbert-base-uncased'
 LABELS = ['negative', 'neutral', 'positive']
@@ -80,8 +81,8 @@ def _init_model_vars_with_saved_weights():
       _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
       _model.eval()
 
-def ensure_model_weights_exist(epochs = 3):
-  if not exists(DISTILBERT_REPORT_PATH):
+def ensure_model_weights_exist(epochs = 3, retrain = False):
+  if retrain or not exists(DISTILBERT_CHECKPOINT_PATH) or not exists(DISTILBERT_REPORT_PATH):
     print('Training DistilBERT...')
     
     _init_model_vars()
@@ -101,12 +102,15 @@ def ensure_model_weights_exist(epochs = 3):
     def evaluate(reviews):
       _model.eval()
       predictions = []
-      for texts in DataLoader(reviews.Text.tolist(), batch_size = 16):
-        predictions.extend(
-          _model(_tokenize(texts))
-            .argmax(dim = 1)
-            .tolist()
-        )
+      loss_sum = 0.0
+      weight_sum = 0.0
+      for texts, labels in DataLoader(list(zip(reviews.Text, reviews.label.astype(int))), batch_size = 16):
+        logits = _model(_tokenize(texts))
+        labels = labels.to(_device)
+        weight = criterion.weight[labels].sum().item()
+        loss_sum += criterion(logits, labels).item() * weight
+        weight_sum += weight
+        predictions.extend(logits.argmax(dim = 1).tolist())
       return classification_report(
         reviews.label,
         predictions,
@@ -114,41 +118,53 @@ def ensure_model_weights_exist(epochs = 3):
         target_names = LABELS,
         zero_division = 0,
         output_dict = True
-      )
+      ), loss_sum / weight_sum
     
     makedirs(MODEL_DIR, exist_ok = True)
     
     with open(DISTILBERT_REPORT_PATH, 'w', newline = '') as f:
       best_f1 = -1
+      history = []
       for epoch in range(epochs):
         _model.train()
+        loss_sum = 0.0
+        weight_sum = 0.0
         for step, (texts, labels) in enumerate(batches, 1):
           optimizer.zero_grad()
+          labels = labels.to(_device)
           with torch.autocast(_device.type, dtype = torch.bfloat16, enabled = use_bfloat16):
-            loss = criterion(_model(_tokenize(texts)), labels.to(_device))
+            loss = criterion(_model(_tokenize(texts)), labels)
+          weight = criterion.weight[labels].sum().item()
+          loss_sum += loss.item() * weight
+          weight_sum += weight
           loss.backward()
           optimizer.step()
           if step % 250 == 0:
             print_and_write(f'Epoch {epoch + 1}, batch {step}/{len(batches)}', flush = True, file = f)
-        f1 = evaluate(val)['macro avg']['f1-score']
+        validation_metrics, validation_loss = evaluate(val)
+        history.append((epoch + 1, loss_sum / weight_sum, validation_loss))
+        f1 = validation_metrics['macro avg']['f1-score']
         print_and_write(f'Epoch {epoch + 1} validation macro F1: {f1:.3f}', flush = True, file = f)
         if f1 > best_f1:
           torch.save(_model.state_dict(), DISTILBERT_CHECKPOINT_PATH)
           best_f1 = f1
       
       _model.load_state_dict(torch.load(DISTILBERT_CHECKPOINT_PATH, map_location = _device, weights_only = True))
-      metrics = evaluate(test)
+      metrics, _ = evaluate(test)
       print_and_write(f'Test accuracy: {metrics.pop('accuracy'):.3f}', file = f)
       print_and_write(pd.DataFrame(metrics).T.round(3), file = f)
     
+    pd.DataFrame(history, columns = ['epoch', 'training_loss', 'validation_loss']).to_csv(
+      plot_distilbert_loss.HISTORY, index = False)
+    plot_distilbert_loss.main()
     print(f'DistilBERT training report saved to {DISTILBERT_REPORT_PATH}')
     
     return True
   else:
     return False
 
-def train(epochs = 3):
-  if not ensure_model_weights_exist(epochs = epochs):
+def train(epochs = 3, retrain = False):
+  if not ensure_model_weights_exist(epochs = epochs, retrain = retrain):
     print('DistilBERT already trained')
 
 def categorize(review_text, print_func = print):
@@ -183,6 +199,7 @@ def main():
   parser = argparse.ArgumentParser(description = __doc__)
   parser.add_argument('--review', help = 'Classify a review with the saved model')
   parser.add_argument('--epochs', type = int, default = 3)
+  parser.add_argument('--retrain', action = 'store_true', help = 'Train again and replace the checkpoint and training outputs')
   args = parser.parse_args()
   if args.epochs < 1:
     parser.error('--epochs must be positive')
@@ -190,7 +207,7 @@ def main():
   if args.review is not None:
     categorize(args.review)
   else:
-    train(args.epochs)
+    train(args.epochs, retrain = args.retrain)
 
 if __name__ == '__main__':
   main()

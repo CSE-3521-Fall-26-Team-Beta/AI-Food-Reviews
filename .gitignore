@@ -11,3 +11,4 @@ __pycache__
 /results/logistic_regression_report.txt
 /results/score_distribution.png
 /results/word_embedding_report.txt
+/results/distilbert_loss_history.csv
