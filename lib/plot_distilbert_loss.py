@@ -59,3 +59,5 @@ def ensure_loss_plot_created():
   plt.close(fig)
   
   print(f'DistilBERT loss curves chart saved to {DISTILBERT_LOSS_CURVES_PATH}')
+  
+  return True
